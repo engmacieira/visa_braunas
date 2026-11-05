@@ -7,6 +7,7 @@ from typing import Optional
 import uuid
 
 from sqlalchemy import (
+    Boolean,
     CheckConstraint,
     Date,
     DateTime,
@@ -16,6 +17,7 @@ from sqlalchemy import (
     String,
     Text,
     func,
+    text,
 )
 from sqlalchemy.dialects.postgresql import ENUM, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -111,32 +113,34 @@ class RequerimentoAlvaraModel(Base, SoftDeleteAuditMixin):
             "uq_requerimento_protocolo",
             "numero_protocolo",
             unique=True,
-            postgresql_where=(SoftDeleteAuditMixin.is_deleted.is_(False)),
+            postgresql_where=text("is_deleted = FALSE"),
         ),
         Index(
             "idx_req_alvara_protocolo",
             "numero_protocolo",
-            postgresql_where=(SoftDeleteAuditMixin.is_deleted.is_(False)),
+            postgresql_where=text("is_deleted = FALSE"),
         ),
         Index(
             "idx_req_alvara_painel_fila",
             "status",
-            "data_submissao",
-            postgresql_where=(SoftDeleteAuditMixin.is_deleted.is_(False)),
+            text("data_submissao ASC"),
+            postgresql_where=text("status IN ('pendente', 'em_analise', 'aguardando_inspecao', 'aguardando_adequacao') AND is_deleted = FALSE"),
         ),
         Index(
             "idx_req_alvara_estabelecimento",
             "estabelecimento_id",
-            "data_submissao",
-            postgresql_where=(SoftDeleteAuditMixin.is_deleted.is_(False)),
+            text("data_submissao DESC"),
+            postgresql_where=text("is_deleted = FALSE"),
         ),
     )
 
 
-class RequerimentoAlvaraDadosModel(Base, SoftDeleteAuditMixin):
+class RequerimentoAlvaraDadosModel(Base):
     """
     Tabela: requerimentos_alvara_dados
-    Espelho cadastral integral da petição enviada pelo formulário web (Relacionamento 1:1)
+    Espelho cadastral integral da petição enviada pelo formulário web (Relacionamento 1:1).
+    Possui chave primária requerimento_id (UUID PK 1:1) e campos explícitos de ciclo de vida / auditoria
+    conforme DDL do módulo 4_requerimentos_alvara.sql.
     """
     __tablename__ = "requerimentos_alvara_dados"
 
@@ -222,10 +226,35 @@ class RequerimentoAlvaraDadosModel(Base, SoftDeleteAuditMixin):
     preenchedor_vinculo: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     preenchedor_telefone: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
 
+    # Controle de Ciclo de Vida (Soft Delete Universal) e Auditoria Padronizada
+    is_active: Mapped[bool] = mapped_column(
+        Boolean,
+        default=True,
+        server_default=func.true() if hasattr(func, "true") else "true",
+        nullable=False,
+    )
+    is_deleted: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        server_default=func.false() if hasattr(func, "false") else "false",
+        nullable=False,
+    )
+    criado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+    atualizado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
+
     requerimento = relationship("RequerimentoAlvaraModel", back_populates="dados")
 
     __table_args__ = (
-        Index("idx_req_dados_cpf_cnpj", "cpf_cnpj", postgresql_where=(SoftDeleteAuditMixin.is_deleted.is_(False))),
+        Index("idx_req_dados_cpf_cnpj", "cpf_cnpj", postgresql_where=text("is_deleted = FALSE")),
     )
 
 
@@ -288,48 +317,44 @@ class AlvaraSanitarioModel(Base, SoftDeleteAuditMixin):
             "numero_alvara",
             "exercicio",
             unique=True,
-            postgresql_where=(SoftDeleteAuditMixin.is_deleted.is_(False)),
+            postgresql_where=text("is_deleted = FALSE"),
         ),
         Index(
             "uq_alvara_codigo_autenticidade",
             "codigo_autenticidade",
             unique=True,
-            postgresql_where=(SoftDeleteAuditMixin.is_deleted.is_(False)),
+            postgresql_where=text("is_deleted = FALSE"),
         ),
         Index(
             "idx_alvaras_autenticidade",
             "codigo_autenticidade",
-            postgresql_where=(SoftDeleteAuditMixin.is_deleted.is_(False)),
+            postgresql_where=text("is_deleted = FALSE"),
         ),
         Index(
             "idx_alvaras_estabelecimento",
             "estabelecimento_id",
-            "data_emissao",
-            postgresql_where=(SoftDeleteAuditMixin.is_deleted.is_(False)),
+            text("data_emissao DESC"),
+            postgresql_where=text("is_deleted = FALSE"),
         ),
         Index(
             "idx_alvaras_vencimento_alerta",
             "data_vencimento",
             "status",
-            postgresql_where=(
-                (status == "ativo")
-                & (SoftDeleteAuditMixin.is_active.is_(True))
-                & (SoftDeleteAuditMixin.is_deleted.is_(False))
-            ),
+            postgresql_where=text("status = 'ativo' AND is_active = TRUE AND is_deleted = FALSE"),
         ),
         Index(
             "idx_alvaras_requerimento",
             "requerimento_id",
-            postgresql_where=(SoftDeleteAuditMixin.is_deleted.is_(False)),
+            postgresql_where=text("requerimento_id IS NOT NULL AND is_deleted = FALSE"),
         ),
         Index(
             "idx_alvaras_inspecao_conclusiva",
             "inspecao_conclusiva_id",
-            postgresql_where=(SoftDeleteAuditMixin.is_deleted.is_(False)),
+            postgresql_where=text("inspecao_conclusiva_id IS NOT NULL AND is_deleted = FALSE"),
         ),
         Index(
             "idx_alvaras_emitido_por",
             "emitido_por",
-            postgresql_where=(SoftDeleteAuditMixin.is_deleted.is_(False)),
+            postgresql_where=text("is_deleted = FALSE"),
         ),
     )

@@ -288,6 +288,12 @@ def upgrade() -> None:
     op.create_index("uq_estab_tipo_doc_vigente", "estabelecimento_documentos", ["estabelecimento_id", "tipo_documento_id"], unique=True, postgresql_where=sa.text("eh_versao_atual = TRUE AND is_deleted = FALSE"))
     op.create_index("idx_estab_docs_estabelecimento", "estabelecimento_documentos", ["estabelecimento_id"], postgresql_where=sa.text("is_deleted = FALSE"))
     op.create_index("idx_estab_docs_tipo", "estabelecimento_documentos", ["tipo_documento_id"], postgresql_where=sa.text("is_deleted = FALSE"))
+    op.create_index(
+        "idx_estab_docs_alerta_vencimento",
+        "estabelecimento_documentos",
+        ["data_validade", "situacao"],
+        postgresql_where=sa.text("eh_versao_atual = TRUE AND data_validade IS NOT NULL AND is_deleted = FALSE"),
+    )
     op.execute("""
     CREATE TRIGGER trg_estabelecimento_documentos_atualizado_em
     BEFORE UPDATE ON estabelecimento_documentos

@@ -78,10 +78,12 @@ class InspecaoModel(Base, SoftDeleteAuditMixin):
     )
     requerimento_id: Mapped[Optional[uuid.UUID]] = mapped_column(
         UUID(as_uuid=True),
+        ForeignKey("requerimentos_alvara.id", ondelete="SET NULL", onupdate="CASCADE"),
         nullable=True,
     )
     denuncia_id: Mapped[Optional[uuid.UUID]] = mapped_column(
         UUID(as_uuid=True),
+        ForeignKey("denuncias.id", ondelete="SET NULL", onupdate="CASCADE"),
         nullable=True,
     )
 
