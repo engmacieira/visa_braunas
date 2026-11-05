@@ -407,6 +407,12 @@ class EstabelecimentoDocumentoModel(Base, SoftDeleteAuditMixin):
         Index("uq_estab_tipo_doc_vigente", "estabelecimento_id", "tipo_documento_id", unique=True, postgresql_where=text("eh_versao_atual = TRUE AND is_deleted = FALSE")),
         Index("idx_estab_docs_estabelecimento", "estabelecimento_id", postgresql_where=text("is_deleted = FALSE")),
         Index("idx_estab_docs_tipo", "tipo_documento_id", postgresql_where=text("is_deleted = FALSE")),
+        Index(
+            "idx_estab_docs_alerta_vencimento",
+            "data_validade",
+            "situacao",
+            postgresql_where=text("eh_versao_atual = TRUE AND data_validade IS NOT NULL AND is_deleted = FALSE"),
+        ),
     )
 
 

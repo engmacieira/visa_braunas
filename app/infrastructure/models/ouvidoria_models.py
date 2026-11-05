@@ -14,6 +14,7 @@ from sqlalchemy import (
     String,
     Text,
     func,
+    text,
 )
 from sqlalchemy.dialects.postgresql import ENUM, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -141,37 +142,28 @@ class DenunciaModel(Base, SoftDeleteAuditMixin):
             "uq_denuncia_protocolo",
             "numero_protocolo",
             unique=True,
-            postgresql_where=(SoftDeleteAuditMixin.is_deleted.is_(False)),
+            postgresql_where=text("is_deleted = FALSE"),
         ),
         Index(
             "idx_denuncias_protocolo",
             "numero_protocolo",
-            postgresql_where=(SoftDeleteAuditMixin.is_deleted.is_(False)),
+            postgresql_where=text("is_deleted = FALSE"),
         ),
         Index(
             "idx_denuncias_status_fila",
             "status",
             "gravidade",
-            "data_recebimento",
-            postgresql_where=(
-                status.in_(["recebida", "em_analise", "em_apuracao_fiscal"])
-                & (SoftDeleteAuditMixin.is_deleted.is_(False))
-            ),
+            text("data_recebimento ASC"),
+            postgresql_where=text("status IN ('recebida', 'em_analise', 'em_apuracao_fiscal') AND is_deleted = FALSE"),
         ),
         Index(
             "idx_denuncias_estabelecimento",
             "estabelecimento_id",
-            postgresql_where=(
-                estabelecimento_id.isnot(None)
-                & (SoftDeleteAuditMixin.is_deleted.is_(False))
-            ),
+            postgresql_where=text("estabelecimento_id IS NOT NULL AND is_deleted = FALSE"),
         ),
         Index(
             "idx_denuncias_fiscal_designado",
             "fiscal_designado_id",
-            postgresql_where=(
-                fiscal_designado_id.isnot(None)
-                & (SoftDeleteAuditMixin.is_deleted.is_(False))
-            ),
+            postgresql_where=text("fiscal_designado_id IS NOT NULL AND is_deleted = FALSE"),
         ),
     )
