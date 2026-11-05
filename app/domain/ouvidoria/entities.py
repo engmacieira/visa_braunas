@@ -3,51 +3,16 @@ Módulo de Domínio: Entidades Puras de Ouvidoria e Gestão de Denúncias Sanit�
 """
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
 from typing import Any, Dict, List, Optional
 import uuid
 
 
-class CanalDenuncia(str, Enum):
-    FORMULARIO_WEB = "formulario_web"
-    PRESENCIAL = "presencial"
-    TELEFONE = "telefone"
-    OUVIDORIA_GERAL = "ouvidoria_geral"
-    OFICIO_MINISTERIO = "oficio_ministerio"
-
-
-class StatusDenuncia(str, Enum):
-    RECEBIDA = "recebida"
-    EM_ANALISE = "em_analise"
-    EM_APURACAO_FISCAL = "em_apuracao_fiscal"
-    PROCEDENTE = "procedente"
-    IMPROCEDENTE = "improcedente"
-    ARQUIVADA = "arquivada"
-
-
-class GravidadeDenuncia(str, Enum):
-    BAIXA = "baixa"
-    MEDIA = "media"
-    ALTA = "alta"
-    URGENTE = "urgente"
-
-
-@dataclass(frozen=True)
-class NumeroProtocoloDenuncia:
-    valor: str
-
-    def __post_init__(self):
-        if not self.valor or not self.valor.strip():
-            raise ValueError("O número do protocolo da denúncia não pode ser vazio.")
-        cleaned = self.valor.strip().upper()
-        if len(cleaned) > 35:
-            raise ValueError("O número do protocolo da denúncia não pode exceder 35 caracteres.")
-        object.__setattr__(self, "valor", cleaned)
-
-    @classmethod
-    def gerar(cls, sequencial: int, exercicio: int | None = None) -> "NumeroProtocoloDenuncia":
-        ano = exercicio or datetime.now().year
-        return cls(f"DEN-{ano}-{sequencial:05d}")
+from app.domain.ouvidoria.enums import (
+    CanalDenuncia,
+    GravidadeDenuncia,
+    StatusDenuncia,
+)
+from app.domain.ouvidoria.value_objects import NumeroProtocoloDenuncia
 
 
 @dataclass
