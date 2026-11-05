@@ -1,0 +1,6 @@
+{
+  "name": "VigiMinas - Backend de Vigilância Sanitária",
+  "description": "Backend assíncrono em FastAPI, SQLAlchemy 2.0 e DDD para o sistema VigiMinas de Vigilância Sanitária.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

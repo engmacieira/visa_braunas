@@ -1,0 +1,23 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: vigiminas_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-vigiminas_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vigiminas_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-vigiminas_db}
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_vigiminas_data:/var/lib/postgresql/data
+      - ./docker/init-db.sql:/docker-entrypoint-initdb.d/01-init-pgcrypto.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-vigiminas_user} -d ${POSTGRES_DB:-vigiminas_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_vigiminas_data:
+    name: postgres_vigiminas_data

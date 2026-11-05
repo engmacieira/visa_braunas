@@ -1,0 +1,73 @@
+from app.infrastructure.models.auth_models import (
+    ConfiguracaoInstitucionalModel,
+    LogAuditoriaModel,
+    MetasExercicioModel,
+    UsuarioModel,
+    perfil_usuario_enum,
+    tipo_operacao_auditoria_enum,
+)
+from app.infrastructure.models.estabelecimento_models import (
+    CnaeModel,
+    EstabelecimentoCnaeModel,
+    EstabelecimentoDocumentoModel,
+    EstabelecimentoFornecedorModel,
+    EstabelecimentoFuncionarioModel,
+    EstabelecimentoModel,
+    EstabelecimentoResponsavelTecnicoModel,
+    RepresentanteLegalModel,
+    ResponsavelTecnicoModel,
+    TipoDocumentoModel,
+)
+from app.infrastructure.models.fiscalizacao_models import (
+    InspecaoModel,
+    resultado_inspecao_enum,
+    status_inspecao_enum,
+    tipo_motivo_inspecao_enum,
+)
+from app.infrastructure.models.licenciamento_models import (
+    AlvaraSanitarioModel,
+    RequerimentoAlvaraDadosModel,
+    RequerimentoAlvaraModel,
+    status_alvara_enum,
+    status_requerimento_enum,
+    tipo_solicitacao_alvara_enum,
+)
+from app.infrastructure.models.ouvidoria_models import (
+    DenunciaModel,
+    canal_denuncia_enum,
+    gravidade_denuncia_enum,
+    status_denuncia_enum,
+)
+
+__all__ = [
+    "UsuarioModel",
+    "ConfiguracaoInstitucionalModel",
+    "MetasExercicioModel",
+    "LogAuditoriaModel",
+    "perfil_usuario_enum",
+    "tipo_operacao_auditoria_enum",
+    "CnaeModel",
+    "TipoDocumentoModel",
+    "RepresentanteLegalModel",
+    "EstabelecimentoModel",
+    "EstabelecimentoCnaeModel",
+    "ResponsavelTecnicoModel",
+    "EstabelecimentoResponsavelTecnicoModel",
+    "EstabelecimentoDocumentoModel",
+    "EstabelecimentoFuncionarioModel",
+    "EstabelecimentoFornecedorModel",
+    "InspecaoModel",
+    "tipo_motivo_inspecao_enum",
+    "status_inspecao_enum",
+    "resultado_inspecao_enum",
+    "RequerimentoAlvaraModel",
+    "RequerimentoAlvaraDadosModel",
+    "AlvaraSanitarioModel",
+    "tipo_solicitacao_alvara_enum",
+    "status_requerimento_enum",
+    "status_alvara_enum",
+    "DenunciaModel",
+    "canal_denuncia_enum",
+    "status_denuncia_enum",
+    "gravidade_denuncia_enum",
+]
