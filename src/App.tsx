@@ -14,9 +14,13 @@ import { APP_CONFIG } from "./config/app.config";
 import { AuthProvider } from "./contexts/AuthContext";
 import { AppLayout } from "./layouts/AppLayout";
 import { DashboardPage } from "./pages/DashboardPage";
-import { EstabelecimentosPage } from "./pages/EstabelecimentosPage";
+import { EstabelecimentosListPage } from "./pages/estabelecimentos/EstabelecimentosListPage";
+import { EstabelecimentoDetailPage } from "./pages/estabelecimentos/EstabelecimentoDetailPage";
+import { EstabelecimentoFormPage } from "./pages/estabelecimentos/EstabelecimentoFormPage";
+import { InspecoesListPage } from "./pages/fiscalizacao/InspecoesListPage";
+import { LaudoInspecaoFormPage } from "./pages/fiscalizacao/LaudoInspecaoFormPage";
+import { PainelPrazosPage } from "./pages/fiscalizacao/PainelPrazosPage";
 import { IndicadoresPage } from "./pages/IndicadoresPage";
-import { InspecoesPage } from "./pages/InspecoesPage";
 import { LicenciamentoPage } from "./pages/LicenciamentoPage";
 import { LoginPage } from "./pages/LoginPage";
 import { OuvidoriaPage } from "./pages/OuvidoriaPage";
@@ -54,7 +58,19 @@ export default function App() {
               <Route index element={<DashboardPage />} />
               <Route
                 path="estabelecimentos"
-                element={<EstabelecimentosPage />}
+                element={<EstabelecimentosListPage />}
+              />
+              <Route
+                path="estabelecimentos/novo"
+                element={<EstabelecimentoFormPage />}
+              />
+              <Route
+                path="estabelecimentos/:id"
+                element={<EstabelecimentoDetailPage />}
+              />
+              <Route
+                path="estabelecimentos/:id/editar"
+                element={<EstabelecimentoFormPage />}
               />
               <Route
                 path="inspecoes"
@@ -66,7 +82,35 @@ export default function App() {
                       "fiscal_tecnico",
                     ]}
                   >
-                    <InspecoesPage />
+                    <InspecoesListPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="inspecoes/:id/laudo"
+                element={
+                  <ProtectedRoute
+                    allowedRoles={[
+                      "admin_master",
+                      "coordenador",
+                      "fiscal_tecnico",
+                    ]}
+                  >
+                    <LaudoInspecaoFormPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="fiscalizacao/prazos"
+                element={
+                  <ProtectedRoute
+                    allowedRoles={[
+                      "admin_master",
+                      "coordenador",
+                      "fiscal_tecnico",
+                    ]}
+                  >
+                    <PainelPrazosPage />
                   </ProtectedRoute>
                 }
               />

@@ -12,6 +12,7 @@ import {
   Building2,
   ChevronRight,
   ClipboardCheck,
+  Clock,
   FileCheck,
   LayoutDashboard,
   LogOut,
@@ -46,6 +47,12 @@ const MENU_ITEMS: NavMenuItem[] = [
     label: "Fiscalização & VAPT",
     path: "/inspecoes",
     icon: ClipboardCheck,
+    allowedRoles: ["admin_master", "coordenador", "fiscal_tecnico"],
+  },
+  {
+    label: "Painel de Prazos",
+    path: "/fiscalizacao/prazos",
+    icon: Clock,
     allowedRoles: ["admin_master", "coordenador", "fiscal_tecnico"],
   },
   {
