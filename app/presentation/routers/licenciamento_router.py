@@ -4,8 +4,10 @@ Router FastAPI: Licenciamento Sanitário e Expedição Oficial de Alvarás
 from typing import Optional
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.limiter import limiter
 
 from app.application.licenciamento.dtos import (
     AlvaraSanitarioOutputDTO,
@@ -318,7 +320,9 @@ async def obter_alvara(
     response_model=AlvaraSanitarioOutputDTO,
     summary="Validação Pública de Autenticidade do Alvará (Ponto de QR Code)",
 )
+@limiter.limit("30/minute")
 async def validar_alvara_publico(
+    request: Request,
     codigo_autenticidade: str,
     session: AsyncSession = Depends(get_db_session),
 ):

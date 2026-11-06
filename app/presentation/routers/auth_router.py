@@ -6,6 +6,7 @@ from app.application.auth.use_cases.autenticar_usuario import (
     CredenciaisInvalidasException,
     UsuarioInativoException,
 )
+from app.core.limiter import limiter
 from app.domain.auth.entities import Usuario
 from app.domain.auth.repositories import IAuditoriaRepository, IUsuarioRepository
 from app.presentation.dependencies import (
@@ -26,9 +27,10 @@ router = APIRouter(prefix="/auth", tags=["Autenticação e Sessão"])
     summary="Autenticação do Servidor",
     description="Autentica o servidor com e-mail e senha, atualiza o último login, registra auditoria e emite token JWT.",
 )
+@limiter.limit("5/minute")
 async def login(
-    dto: LoginDTO,
     request: Request,
+    dto: LoginDTO,
     usuario_repo: IUsuarioRepository = Depends(get_usuario_repository),
     auditoria_repo: IAuditoriaRepository = Depends(get_auditoria_repository),
 ) -> TokenDTO:

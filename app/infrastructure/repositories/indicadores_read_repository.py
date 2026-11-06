@@ -184,7 +184,7 @@ class IndicadoresReadRepository(IIndicadoresReadRepository):
         grau_risco: str,
         apenas_nao_fiscalizados: bool = False,
     ) -> List[Dict[str, Any]]:
-        query_sql = f"""
+        base_query = """
             SELECT 
                 e.id,
                 e.cnpj_cpf,
@@ -209,10 +209,17 @@ class IndicadoresReadRepository(IIndicadoresReadRepository):
             ) ultima_insp ON TRUE
             WHERE e.situacao_estabelecimento = 'Ativo'
               AND e.grau_risco_preponderante = :grau_risco
-              {"AND ultima_insp.id IS NULL" if apenas_nao_fiscalizados else ""}
+              AND (:apenas_nao_fiscalizados = FALSE OR ultima_insp.id IS NULL)
             ORDER BY e.razao_social ASC
         """
-        res = await self.session.execute(text(query_sql), {"ano": ano, "grau_risco": grau_risco})
+        res = await self.session.execute(
+            text(base_query),
+            {
+                "ano": ano,
+                "grau_risco": grau_risco,
+                "apenas_nao_fiscalizados": apenas_nao_fiscalizados,
+            },
+        )
         return [dict(r) for r in res.mappings().all()]
 
     async def obter_painel_alertas_vencimento(self, limite_dias: int = 30) -> Dict[str, Any]:

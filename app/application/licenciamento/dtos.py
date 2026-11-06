@@ -86,11 +86,13 @@ class RequerimentoDadosDeclaradosDTO(BaseModel):
 
 
 class SubmeterRequerimentoInputDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     estabelecimento_id: uuid.UUID
     tipo_solicitacao: TipoSolicitacaoAlvara
-    alvara_anterior_numero: Optional[str] = None
-    alvara_anterior_exercicio: Optional[int] = None
-    origem_solicitacao: str = Field(default="Google Forms Web")
+    alvara_anterior_numero: Optional[str] = Field(None, max_length=50)
+    alvara_anterior_exercicio: Optional[int] = Field(None, ge=2000, le=2100)
+    origem_solicitacao: str = Field(default="Google Forms Web", max_length=100)
     dados: RequerimentoDadosDeclaradosDTO
 
 
@@ -128,12 +130,14 @@ class PaginatedRequerimentosOutputDTO(BaseModel):
 
 
 class EmitirAlvaraSanitarioInputDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     estabelecimento_id: uuid.UUID
     requerimento_id: Optional[uuid.UUID] = None
     inspecao_conclusiva_id: Optional[uuid.UUID] = None
     validade_meses: int = Field(default=12, ge=1, le=60)
-    condicionantes_restricoes: Optional[str] = None
-    url_alvara_pdf: Optional[str] = None
+    condicionantes_restricoes: Optional[str] = Field(None, max_length=2000)
+    url_alvara_pdf: Optional[str] = Field(None, max_length=500)
 
 
 class AlvaraSanitarioOutputDTO(BaseModel):

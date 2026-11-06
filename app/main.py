@@ -6,7 +6,11 @@ from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
+from slowapi.errors import RateLimitExceeded
+
 from app.core.config import settings
+from app.core.limiter import _rate_limit_exceeded_custom_handler, limiter
+from app.core.security_middleware import SecurityHeadersMiddleware
 from app.infrastructure.database import async_engine
 from app.presentation.routers.auth_router import router as auth_router
 from app.presentation.routers.cnaes_router import router as cnaes_router
@@ -40,6 +44,13 @@ app = FastAPI(
     docs_url="/docs" if not settings.is_production else None,
     redoc_url="/redoc" if not settings.is_production else None,
 )
+
+# Configuração do Rate Limiter
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_custom_handler)
+
+# Middleware de Cabeçalhos Defensivos e HTTPS/HSTS
+app.add_middleware(SecurityHeadersMiddleware)
 
 # Configuração do Middleware de CORS
 if settings.BACKEND_CORS_ORIGINS:
