@@ -20,10 +20,17 @@ import { EstabelecimentoFormPage } from "./pages/estabelecimentos/Estabeleciment
 import { InspecoesListPage } from "./pages/fiscalizacao/InspecoesListPage";
 import { LaudoInspecaoFormPage } from "./pages/fiscalizacao/LaudoInspecaoFormPage";
 import { PainelPrazosPage } from "./pages/fiscalizacao/PainelPrazosPage";
-import { IndicadoresPage } from "./pages/IndicadoresPage";
+import { DashboardIndicadoresPage } from "./pages/indicadores/DashboardIndicadoresPage";
+import { RelatorioSusPage } from "./pages/indicadores/RelatorioSusPage";
 import { LicenciamentoPage } from "./pages/LicenciamentoPage";
+import { RequerimentoDetailPage } from "./pages/licenciamento/RequerimentoDetailPage";
+import { AlvaraViewPage } from "./pages/licenciamento/AlvaraViewPage";
+import { ValidarAlvaraPublicPage } from "./pages/public/ValidarAlvaraPublicPage";
+import { DenunciaPublicaPage } from "./pages/public/DenunciaPublicaPage";
 import { LoginPage } from "./pages/LoginPage";
-import { OuvidoriaPage } from "./pages/OuvidoriaPage";
+import { DenunciasListPage } from "./pages/ouvidoria/DenunciasListPage";
+import { DenunciaDetailPage } from "./pages/ouvidoria/DenunciaDetailPage";
+import { RegistrarDenunciaInternaPage } from "./pages/ouvidoria/RegistrarDenunciaInternaPage";
 import { UsuariosPage } from "./pages/UsuariosPage";
 
 // Instância do QueryClient com configurações sensatas da Single Source of Truth
@@ -47,6 +54,13 @@ export default function App() {
             {/* Rota Pública de Autenticação */}
             <Route path="/login" element={<LoginPage />} />
 
+            {/* Rota Pública de Validação de Autenticidade do Alvará (QR Code) */}
+            <Route path="/validar-alvara/:codigo" element={<ValidarAlvaraPublicPage />} />
+            <Route path="/validar-alvara" element={<ValidarAlvaraPublicPage />} />
+
+            {/* Rota Pública do Canal Cidadão (Registro e Consulta de Denúncias Sanitárias) */}
+            <Route path="/denuncia-cidada" element={<DenunciaPublicaPage />} />
+
             {/* Rotas Protegidas sob o Shell Operacional (AppLayout) */}
             <Route
               element={
@@ -56,6 +70,7 @@ export default function App() {
               }
             >
               <Route index element={<DashboardPage />} />
+              <Route path="dashboard" element={<DashboardPage />} />
               <Route
                 path="estabelecimentos"
                 element={<EstabelecimentosListPage />}
@@ -118,17 +133,62 @@ export default function App() {
                 path="licenciamento"
                 element={<LicenciamentoPage />}
               />
-              <Route path="ouvidoria" element={<OuvidoriaPage />} />
+              <Route
+                path="licenciamento/requerimentos"
+                element={<LicenciamentoPage />}
+              />
+              <Route
+                path="licenciamento/requerimentos/:id"
+                element={<RequerimentoDetailPage />}
+              />
+              <Route
+                path="licenciamento/alvaras/:id"
+                element={<AlvaraViewPage />}
+              />
+              <Route path="ouvidoria" element={<DenunciasListPage />} />
+              <Route
+                path="ouvidoria/nova"
+                element={<RegistrarDenunciaInternaPage />}
+              />
+              <Route
+                path="ouvidoria/:id"
+                element={<DenunciaDetailPage />}
+              />
               <Route
                 path="indicadores"
                 element={
                   <ProtectedRoute
-                    allowedRoles={["admin_master", "coordenador"]}
+                    allowedRoles={[
+                      "admin_master",
+                      "coordenador",
+                      "fiscal_tecnico",
+                    ]}
                   >
-                    <IndicadoresPage />
+                    <DashboardIndicadoresPage />
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="relatorios/sus"
+                element={
+                  <ProtectedRoute
+                    allowedRoles={["admin_master", "coordenador"]}
+                  >
+                    <RelatorioSusPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="relatorios/sus/:ano"
+                element={
+                  <ProtectedRoute
+                    allowedRoles={["admin_master", "coordenador"]}
+                  >
+                    <RelatorioSusPage />
+                  </ProtectedRoute>
+                }
+              />
+
               <Route
                 path="usuarios"
                 element={

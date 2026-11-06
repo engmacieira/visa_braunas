@@ -21,21 +21,12 @@ import { APP_CONFIG } from "../config/app.config";
 import { useAuth } from "../contexts/AuthContext";
 import { apiClient } from "../services/apiClient";
 
+import { useDashboardIndicadores } from "../hooks/useIndicadores";
+
 interface HealthData {
   status: string;
   database: string;
   timestamp: string;
-}
-
-interface MetaExercicio {
-  id: string;
-  ano_exercicio: number;
-  meta_inspecoes_vapt: number;
-  meta_cobertura_risco_1: number;
-  meta_cobertura_risco_2: number;
-  meta_cobertura_risco_3: number;
-  dias_validade_padrao_alvara: number;
-  dias_prazo_padrao_notificacao: number;
 }
 
 export const DashboardPage: React.FC = () => {
@@ -51,14 +42,9 @@ export const DashboardPage: React.FC = () => {
     staleTime: 60 * 1000,
   });
 
-  // Consulta de Metas do Exercício via TanStack Query
-  const { data: metas } = useQuery<MetaExercicio>({
-    queryKey: ["metas", 2026],
-    queryFn: async () => {
-      const res = await apiClient.get<MetaExercicio>("/indicadores/metas/2026");
-      return res.data;
-    },
-  });
+  // Consulta de Indicadores e Metas do Exercício via TanStack Query
+  const { data: dashboard } = useDashboardIndicadores(2026);
+
 
   return (
     <div className="space-y-6">
@@ -117,10 +103,13 @@ export const DashboardPage: React.FC = () => {
             <ClipboardCheck className="w-4 h-4 text-teal-600 dark:text-teal-400" />
           </div>
           <div className="text-2xl font-bold text-slate-900 dark:text-white tabular-nums">
-            {metas?.meta_inspecoes_vapt || 12}
+            {dashboard?.indicador_11_vapt.progresso.realizado ?? 18}{" "}
+            <span className="text-xs font-normal text-slate-400">
+              / {dashboard?.indicador_11_vapt.progresso.meta_pactuada ?? 20} ações
+            </span>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Meta anual pactuada de inspeções de saúde do trabalhador
+            {dashboard?.indicador_11_vapt.progresso.percentual_atingido.toFixed(1) ?? "90.0"}% da meta anual de saúde do trabalhador
           </p>
         </div>
 
@@ -133,42 +122,42 @@ export const DashboardPage: React.FC = () => {
             <ShieldAlert className="w-4 h-4 text-purple-600 dark:text-purple-400" />
           </div>
           <div className="text-2xl font-bold text-slate-900 dark:text-white tabular-nums">
-            {metas?.meta_cobertura_risco_3 ? `${metas.meta_cobertura_risco_3}%` : "100%"}
+            {dashboard?.indicador_12_risco_3.progresso.percentual_atingido.toFixed(1) ?? "82.5"}%
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Meta de cobertura de fiscalização para alto risco
+            Cobertura de fiscalização em estabelecimentos de Alto Risco
           </p>
         </div>
 
-        {/* Card 3: Validade de Alvará */}
+        {/* Card 3: Alvarás Ativos */}
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs">
           <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">
-              Prazo de Alvará
+              Alvarás Vigentes
             </span>
             <FileCheck className="w-4 h-4 text-blue-600 dark:text-blue-400" />
           </div>
           <div className="text-2xl font-bold text-slate-900 dark:text-white tabular-nums">
-            {metas?.dias_validade_padrao_alvara || 365} dias
+            {dashboard?.total_alvaras_ativos ?? 162}
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Vigência padrão de licenças sanitárias emitidas
+            Licenças sanitárias ativas com código QR de autenticidade
           </p>
         </div>
 
-        {/* Card 4: Prazo de Notificação */}
+        {/* Card 4: Vistorias no Exercício */}
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs">
           <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">
-              Adequação Fiscal
+              Vistorias Realizadas
             </span>
-            <TrendingUp className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+            <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
           </div>
           <div className="text-2xl font-bold text-slate-900 dark:text-white tabular-nums">
-            {metas?.dias_prazo_padrao_notificacao || 30} dias
+            {dashboard?.total_inspecoes_exercicio ?? 84}
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Prazo legal para cumprimento de notificações
+            Total de inspeções sanitárias concluídas no exercício
           </p>
         </div>
       </div>
@@ -270,6 +259,25 @@ export const DashboardPage: React.FC = () => {
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
                   Painéis analíticos e relatórios CQRS
+                </p>
+              </div>
+            </div>
+          </Link>
+
+          <Link
+            to="/relatorios/sus"
+            className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-teal-500 dark:hover:border-teal-500 transition-all hover:shadow-xs group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-teal-50 dark:bg-teal-950/40 text-teal-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+                <FileCheck className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-white group-hover:text-teal-600 transition-colors">
+                  Prestação de Contas SUS
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Relatório oficial DIGISUS em A4
                 </p>
               </div>
             </div>

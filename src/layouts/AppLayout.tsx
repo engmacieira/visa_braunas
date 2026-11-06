@@ -69,7 +69,7 @@ const MENU_ITEMS: NavMenuItem[] = [
     label: "Metas & Indicadores",
     path: "/indicadores",
     icon: BarChart3,
-    allowedRoles: ["admin_master", "coordenador"],
+    allowedRoles: ["admin_master", "coordenador", "fiscal_tecnico"],
   },
   {
     label: "Usuários & Servidores",

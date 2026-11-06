@@ -167,3 +167,41 @@ async def gerar_relatorio_oficial(
 ):
     query = GerarRelatorioOficialExercicioQuery(repo)
     return await query.execute(ano_exercicio=ano)
+
+
+@router.get(
+    "/relatorio-sus/{ano}",
+    response_model=RelatorioOficialExercicioDTO,
+    summary="Relatório Oficial do Exercício para Prestação de Contas ao SUS (DIGISUS)",
+)
+async def gerar_relatorio_sus_ano(
+    ano: int,
+    repo: IndicadoresReadRepository = Depends(get_indicadores_read_repo),
+    _: Usuario = Depends(require_roles(["admin_master", "coordenador"])),
+):
+    query = GerarRelatorioOficialExercicioQuery(repo)
+    return await query.execute(ano_exercicio=ano)
+
+
+@router.get(
+    "/metas/{ano}",
+    summary="Metas pactuadas para o exercício informado",
+)
+async def obter_metas_exercicio_endpoint(
+    ano: int,
+    repo: IndicadoresReadRepository = Depends(get_indicadores_read_repo),
+    _: Usuario = Depends(get_current_active_user),
+):
+    metas = await repo.obter_metas_exercicio(ano)
+    if not metas:
+        return {
+            "ano_exercicio": ano,
+            "meta_inspecoes_vapt": 20,
+            "meta_cobertura_risco_1": 100.0,
+            "meta_cobertura_risco_2": 100.0,
+            "meta_cobertura_risco_3": 100.0,
+            "dias_validade_padrao_alvara": 365,
+            "dias_prazo_padrao_notificacao": 30,
+        }
+    return metas
+
