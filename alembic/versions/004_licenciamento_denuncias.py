@@ -160,7 +160,7 @@ def upgrade() -> None:
         sa.Column("telefone_fixo", sa.String(length=20), nullable=True),
         sa.Column("telefone_celular", sa.String(length=20), nullable=True),
         sa.Column("email_comercial", sa.String(length=150), nullable=True),
-        sa.Column("cep", sa.String(length=9), nullable=True),
+        sa.Column("cep", sa.String(length=10), nullable=True),
         sa.Column("logradouro", sa.String(length=255), nullable=True),
         sa.Column("numero", sa.String(length=20), nullable=True),
         sa.Column("complemento", sa.String(length=100), nullable=True),

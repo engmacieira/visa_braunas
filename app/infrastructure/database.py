@@ -10,7 +10,10 @@ from app.core.config import settings
 # Motor assíncrono para runtime do FastAPI com driver asyncpg
 async_engine: AsyncEngine = create_async_engine(
     settings.DATABASE_URL,
-    echo=settings.DEBUG and not settings.is_production,
+    echo=False,
+    pool_size=settings.DB_POOL_SIZE,
+    max_overflow=settings.DB_MAX_OVERFLOW,
+    pool_timeout=settings.DB_POOL_TIMEOUT,
     pool_pre_ping=True,
     future=True,
 )

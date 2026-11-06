@@ -1,6 +1,7 @@
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi_cache.decorator import cache
 
 from app.application.estabelecimentos.dtos import CNAEResponseDTO
 from app.domain.auth.entities import Usuario
@@ -21,6 +22,7 @@ router = APIRouter(prefix="/cnaes", tags=["Catálogo de CNAEs e Riscos"])
     summary="Listar / Buscar CNAEs",
     description="Retorna a lista paginada de CNAEs com suporte a busca rápida por código ou descrição (autocomplete).",
 )
+@cache(expire=86400)
 async def list_cnaes(
     busca: Optional[str] = Query(None, description="Termo para busca em código ou descrição"),
     risco: Optional[NivelRiscoCNAE] = Query(None, description="Filtrar por grau de risco"),

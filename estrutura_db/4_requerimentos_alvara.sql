@@ -126,7 +126,7 @@ CREATE TABLE requerimentos_alvara_dados (
     email_comercial VARCHAR(150),
     
     -- 3. LOCALIZAÇÃO DO ESTABELECIMENTO DECLARADA
-    cep VARCHAR(9),
+    cep VARCHAR(10),
     logradouro VARCHAR(255),
     numero VARCHAR(20),
     complemento VARCHAR(100),

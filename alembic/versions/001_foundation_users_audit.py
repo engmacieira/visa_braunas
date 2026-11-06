@@ -110,7 +110,7 @@ def upgrade() -> None:
         sa.Column("logradouro", sa.String(200), nullable=True),
         sa.Column("numero", sa.String(20), nullable=True),
         sa.Column("bairro", sa.String(100), nullable=True),
-        sa.Column("cep", sa.String(9), nullable=True),
+        sa.Column("cep", sa.String(10), nullable=True),
         sa.Column("telefone_oficial", sa.String(20), nullable=True),
         sa.Column("email_oficial", sa.String(150), nullable=True),
         sa.Column("url_brasao_prefeitura", sa.Text(), nullable=True),
