@@ -1,0 +1,87 @@
+name: Backend CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Lint, Migrations & Automated Tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: vigiminas_user
+          POSTGRES_PASSWORD: vigiminas_pass
+          POSTGRES_DB: vigiminas_db
+        ports:
+          - 5434:5432
+        options: >-
+          --health-cmd "pg_isready -U vigiminas_user -d vigiminas_db"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      ENVIRONMENT: test
+      DEBUG: "False"
+      DATABASE_URL: postgresql+asyncpg://vigiminas_user:vigiminas_pass@localhost:5434/vigiminas_db
+      DATABASE_URL_SYNC: postgresql+psycopg2://vigiminas_user:vigiminas_pass@localhost:5434/vigiminas_db
+      SECRET_KEY: test_secret_key_ci_cd_pipeline_automation_2026
+      ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 60
+      PGHOST: localhost
+      PGPORT: "5434"
+      PGUSER: vigiminas_user
+      PGPASSWORD: vigiminas_pass
+      PGDATABASE: vigiminas_db
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install PostgreSQL Client Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest-cov ruff
+
+      - name: Verify PostgreSQL Connection & Enable pgcrypto
+        run: |
+          export PGPASSWORD=vigiminas_pass
+          psql -h localhost -p 5434 -U vigiminas_user -d vigiminas_db -c "CREATE EXTENSION IF NOT EXISTS pgcrypto;"
+          psql -h localhost -p 5434 -U vigiminas_user -d vigiminas_db -c "SELECT extname, extversion FROM pg_extension WHERE extname = 'pgcrypto';"
+
+      - name: Run Ruff Lint Checks
+        run: |
+          ruff check --select E9,F63,F7,F82 app/ tests/
+
+      - name: Run Alembic Database Migrations
+        run: |
+          alembic upgrade head
+
+      - name: Run Pytest with Coverage Gate (>= 80%)
+        run: |
+          pytest --cov=app/domain --cov=app/infrastructure/models --cov=app/infrastructure/base_model.py --cov=app/infrastructure/seeds.py --cov-report=term-missing --cov-fail-under=80
