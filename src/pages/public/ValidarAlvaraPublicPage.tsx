@@ -24,6 +24,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { APP_CONFIG } from "../../config/app.config";
+import { ROUTES } from "../../config/routes.config";
 import { useValidarAlvaraPublico } from "../../hooks/useLicenciamento";
 import { RiscoBadge } from "../../components/estabelecimentos/RiscoBadge";
 
@@ -44,7 +45,7 @@ export const ValidarAlvaraPublicPage: React.FC = () => {
   const handleBuscarNovoCodigo = (e: React.FormEvent) => {
     e.preventDefault();
     if (inputCodigo.trim()) {
-      navigate(`/validar-alvara/${encodeURIComponent(inputCodigo.trim().toUpperCase())}`);
+      navigate(ROUTES.PUBLIC.VALIDAR_ALVARA(encodeURIComponent(inputCodigo.trim().toUpperCase())));
     }
   };
 
@@ -161,7 +162,7 @@ export const ValidarAlvaraPublicPage: React.FC = () => {
                   ALVARÁ SANITÁRIO VÁLIDO
                 </h2>
                 <p className="text-xs text-emerald-100">
-                  Emitido pela Prefeitura Municipal de {APP_CONFIG.municipio} / MG
+                  Emitido pela {APP_CONFIG.prefeitura} / {APP_CONFIG.uf}
                 </p>
               </div>
             ) : (
@@ -314,13 +315,13 @@ export const ValidarAlvaraPublicPage: React.FC = () => {
       <footer className="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-6 text-center text-xs text-slate-500">
         <div className="max-w-2xl mx-auto px-4 space-y-1">
           <p className="font-semibold text-slate-700 dark:text-slate-300">
-            Prefeitura Municipal de {APP_CONFIG.municipio} • {APP_CONFIG.secretaria}
+            {APP_CONFIG.prefeitura} • {APP_CONFIG.secretaria}
           </p>
           <p className="text-[11px] text-slate-400">
-            Coordenação de Vigilância Sanitária (VISA) • Sistema {APP_CONFIG.nome}
+            {APP_CONFIG.orgao} • Sistema {APP_CONFIG.nome}
           </p>
           <p className="text-[10px] text-slate-400 pt-2">
-            Consulta pública em conformidade com o princípio da publicidade administrativa e Código Sanitário de Minas Gerais.
+            Consulta pública em conformidade com o princípio da publicidade administrativa e Código Sanitário do {APP_CONFIG.estadoExtenso}.
           </p>
         </div>
       </footer>

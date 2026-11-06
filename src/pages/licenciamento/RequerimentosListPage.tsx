@@ -22,8 +22,8 @@ import {
   RefreshCw,
   Search,
   Shield,
-  XCircle,
 } from "lucide-react";
+import { ROUTES } from "../../config/routes.config";
 import { useAlvarasList, useRequerimentosList } from "../../hooks/useLicenciamento";
 import { StatusRequerimento, TipoSolicitacaoAlvara } from "../../types/licenciamento";
 import { StatusRequerimentoBadge } from "../../components/licenciamento/StatusRequerimentoBadge";
@@ -393,7 +393,7 @@ export const RequerimentosListPage: React.FC = () => {
                       {/* Ações */}
                       <td className="py-3.5 px-4 text-right">
                         <Link
-                          to={`/licenciamento/requerimentos/${item.id}`}
+                          to={ROUTES.LICENCIAMENTO.DETALHE(item.id)}
                           className="px-3 py-1.5 text-xs font-bold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 rounded-lg hover:bg-teal-100/60 shadow-2xs transition-colors inline-flex items-center gap-1.5"
                         >
                           <FileSearch className="w-3.5 h-3.5" />

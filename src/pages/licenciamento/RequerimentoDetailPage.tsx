@@ -30,6 +30,7 @@ import {
   X,
   XCircle,
 } from "lucide-react";
+import { ROUTES } from "../../config/routes.config";
 import {
   useAnalisarRequerimentoMutation,
   useRequerimentoDetalhe,
@@ -71,7 +72,7 @@ export const RequerimentoDetailPage: React.FC = () => {
           Não foi possível localizar os registros deste processo de licenciamento.
         </p>
         <Link
-          to="/licenciamento"
+          to={ROUTES.LICENCIAMENTO.LIST}
           className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-teal-700 bg-teal-50 rounded-xl border border-teal-200 hover:bg-teal-100"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
@@ -104,7 +105,7 @@ export const RequerimentoDetailPage: React.FC = () => {
       {/* Barra de Navegação Superior */}
       <div className="flex items-center justify-between">
         <Link
-          to="/licenciamento"
+          to={ROUTES.LICENCIAMENTO.LIST}
           className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -249,7 +250,7 @@ export const RequerimentoDetailPage: React.FC = () => {
             <div className="flex items-center gap-2">
               <RiscoBadge risco={estab.nivel_risco} />
               <Link
-                to={`/estabelecimentos/${estab.id}`}
+                to={ROUTES.ESTABELECIMENTOS.DETALHE(estab.id)}
                 target="_blank"
                 className="text-xs font-semibold text-teal-600 dark:text-teal-400 hover:underline flex items-center gap-1"
               >
@@ -454,7 +455,7 @@ export const RequerimentoDetailPage: React.FC = () => {
           razaoSocial={dados?.razao_social || estab?.razao_social}
           cnpjCpf={dados?.cpf_cnpj || estab?.cnpj_cpf}
           onSucesso={(alvara) => {
-            navigate(`/licenciamento/alvaras/${alvara.id}`);
+            navigate(ROUTES.LICENCIAMENTO.ALVARA_VIEW(alvara.id));
           }}
         />
       )}

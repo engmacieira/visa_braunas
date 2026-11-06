@@ -154,11 +154,11 @@ export const LoginPage: React.FC = () => {
           </button>
         </form>
 
-        {/* Atalhos para Contas Seed de Braúnas/MG */}
+        {/* Atalhos para Contas Seed de Demonstração */}
         <div className="mt-8 pt-5 border-t border-slate-700/60">
           <div className="flex items-center gap-1.5 text-xs font-medium text-slate-400 mb-2.5">
             <KeyRound className="w-3.5 h-3.5 text-teal-400" />
-            <span>Acesso Rápido (Contas de Teste - Braúnas):</span>
+            <span>Acesso Rápido (Contas de Teste - {APP_CONFIG.municipio}):</span>
           </div>
 
           <div className="grid grid-cols-2 gap-2 text-[11px]">

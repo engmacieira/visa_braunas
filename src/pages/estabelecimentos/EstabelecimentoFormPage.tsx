@@ -36,6 +36,9 @@ import {
   NivelRisco,
   TipoPessoa,
 } from "../../types/estabelecimento";
+import { APP_CONFIG } from "../../config/app.config";
+import { ROUTES } from "../../config/routes.config";
+import { parseApiError } from "../../utils/apiErrorHandler";
 
 // Esquema Zod espelhando estritamente as regras de negócio do Backend
 const estabelecimentoSchema = z.object({
@@ -151,8 +154,8 @@ export const EstabelecimentoFormPage: React.FC = () => {
       numero: "",
       complemento: "",
       bairro: "Centro",
-      municipio: "Braúnas",
-      uf: "MG",
+      municipio: APP_CONFIG.municipio,
+      uf: APP_CONFIG.uf,
       ponto_referencia: "",
       acesso_compartilhado_residencia: false,
       telefone_fixo: "",
@@ -256,23 +259,9 @@ export const EstabelecimentoFormPage: React.FC = () => {
     setFormError(null);
     try {
       const salvo = await salvarMutation.mutateAsync(values as EstabelecimentoFormValues);
-      navigate(`/estabelecimentos/${salvo.id}`);
+      navigate(ROUTES.ESTABELECIMENTOS.DETALHE(salvo.id));
     } catch (err: unknown) {
-      if (typeof err === "object" && err !== null && "response" in err) {
-        const ax = err as {
-          response?: { data?: { detail?: string | Array<{ msg: string }> } };
-        };
-        const detail = ax.response?.data?.detail;
-        if (typeof detail === "string") {
-          setFormError(detail);
-          return;
-        }
-        if (Array.isArray(detail)) {
-          setFormError(detail.map((d) => d.msg).join(", "));
-          return;
-        }
-      }
-      setFormError("Erro ao salvar cadastro do estabelecimento.");
+      setFormError(parseApiError(err));
     }
   };
 
@@ -292,7 +281,7 @@ export const EstabelecimentoFormPage: React.FC = () => {
         <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={() => navigate("/estabelecimentos")}
+            onClick={() => navigate(ROUTES.ESTABELECIMENTOS.LIST)}
             className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded"
             title="Voltar"
           >
@@ -303,7 +292,7 @@ export const EstabelecimentoFormPage: React.FC = () => {
               {isEditing ? "Editar Estabelecimento" : "Novo Estabelecimento Regulado"}
             </h1>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Preencha os dados cadastrais, endereço em Braúnas/MG e atividades econômicas.
+              Preencha os dados cadastrais, endereço em {APP_CONFIG.municipio}/{APP_CONFIG.uf} e atividades econômicas.
             </p>
           </div>
         </div>
@@ -426,7 +415,7 @@ export const EstabelecimentoFormPage: React.FC = () => {
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-xs space-y-4">
           <h2 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
             <MapPin className="w-4 h-4 text-teal-600" />
-            2. Endereço e Contatos em Braúnas/MG
+            2. Endereço e Contatos em {APP_CONFIG.municipio}/{APP_CONFIG.uf}
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs">
@@ -732,7 +721,7 @@ export const EstabelecimentoFormPage: React.FC = () => {
         {/* Botões de Ação */}
         <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
           <Link
-            to="/estabelecimentos"
+            to={ROUTES.ESTABELECIMENTOS.LIST}
             className="px-4 py-2 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
           >
             Cancelar

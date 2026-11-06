@@ -18,6 +18,7 @@ import {
   Shield,
 } from "lucide-react";
 import { APP_CONFIG } from "../../config/app.config";
+import { ROUTES } from "../../config/routes.config";
 import { useAuth } from "../../contexts/AuthContext";
 import { useRelatorioSus } from "../../hooks/useIndicadores";
 import { RelatorioSusImpressaoView } from "../../components/indicadores/RelatorioSusImpressaoView";
@@ -47,7 +48,7 @@ export const RelatorioSusPage: React.FC = () => {
   const relatorioFallback = {
     municipio: APP_CONFIG.municipio,
     uf: APP_CONFIG.uf,
-    nome_prefeitura: `Prefeitura Municipal de ${APP_CONFIG.municipio}`,
+    nome_prefeitura: APP_CONFIG.prefeitura,
     nome_secretaria: APP_CONFIG.secretaria,
     nome_coordenadoria: APP_CONFIG.orgao,
     ano_exercicio: anoSelecionado,
@@ -113,7 +114,7 @@ export const RelatorioSusPage: React.FC = () => {
       <div className="print:hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <Link
-            to="/indicadores"
+            to={ROUTES.INDICADORES.DASHBOARD}
             className="p-2 text-slate-500 hover:text-slate-800 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
             title="Voltar ao Painel de Indicadores"
           >
@@ -174,7 +175,7 @@ export const RelatorioSusPage: React.FC = () => {
         <Shield className="w-5 h-5 text-teal-600 shrink-0" />
         <div>
           <span className="font-bold">Formato Oficial de Impressão:</span> O layout abaixo é
-          dimensionado automaticamente para folhas A4 com cabeçalho oficial do Município de Braúnas/MG,
+          dimensionado automaticamente para folhas A4 com cabeçalho oficial do Município de {APP_CONFIG.municipio}/{APP_CONFIG.uf},
           matriz de indicadores técnicos e campo formal de homologação pela Coordenação Sanitária.
         </div>
       </div>

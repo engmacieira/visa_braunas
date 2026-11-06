@@ -16,6 +16,7 @@ import {
   QrCode,
   ShieldCheck,
 } from "lucide-react";
+import { ROUTES } from "../../config/routes.config";
 import { useAlvaraDetalhe } from "../../hooks/useLicenciamento";
 import { AlvaraImpressaoView } from "../../components/licenciamento/AlvaraImpressaoView";
 
@@ -44,7 +45,7 @@ export const AlvaraViewPage: React.FC = () => {
           Não foi possível carregar os registros deste documento de autorização sanitária.
         </p>
         <Link
-          to="/licenciamento"
+          to={ROUTES.LICENCIAMENTO.LIST}
           className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-teal-700 bg-teal-50 rounded-xl border border-teal-200 hover:bg-teal-100"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
@@ -55,7 +56,7 @@ export const AlvaraViewPage: React.FC = () => {
   }
 
   const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
-  const urlValidacaoPublica = `${baseUrl}/validar-alvara/${alvara.codigo_autenticidade}`;
+  const urlValidacaoPublica = `${baseUrl}${ROUTES.PUBLIC.VALIDAR_ALVARA(alvara.codigo_autenticidade)}`;
 
   const handleCopiarLink = async () => {
     try {
@@ -77,7 +78,7 @@ export const AlvaraViewPage: React.FC = () => {
       <div className="no-print bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <Link
-            to="/licenciamento"
+            to={ROUTES.LICENCIAMENTO.LIST}
             className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
             title="Voltar para a Fila"
           >
@@ -114,7 +115,7 @@ export const AlvaraViewPage: React.FC = () => {
           </button>
 
           <Link
-            to={`/validar-alvara/${alvara.codigo_autenticidade}`}
+            to={ROUTES.PUBLIC.VALIDAR_ALVARA(alvara.codigo_autenticidade)}
             target="_blank"
             className="px-3 py-1.5 text-xs font-semibold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 rounded-lg hover:bg-teal-100/60 shadow-2xs inline-flex items-center gap-1.5 transition-colors"
           >

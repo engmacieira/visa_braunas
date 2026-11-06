@@ -19,6 +19,7 @@ import {
   Search,
   X,
 } from "lucide-react";
+import { ROUTES } from "../../config/routes.config";
 import RiscoBadge from "../../components/estabelecimentos/RiscoBadge";
 import SituacaoAlvaraBadge from "../../components/estabelecimentos/SituacaoAlvaraBadge";
 import { useEstabelecimentosList } from "../../hooks/useEstabelecimentos";
@@ -100,7 +101,7 @@ export const EstabelecimentosListPage: React.FC = () => {
           </button>
 
           <Link
-            to="/estabelecimentos/novo"
+            to={ROUTES.ESTABELECIMENTOS.NOVO}
             className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-500 rounded-lg shadow-xs transition-colors"
           >
             <Plus className="w-4 h-4" />
@@ -229,7 +230,7 @@ export const EstabelecimentosListPage: React.FC = () => {
 
                     <td className="py-3 px-4 max-w-xs">
                       <Link
-                        to={`/estabelecimentos/${estab.id}`}
+                        to={ROUTES.ESTABELECIMENTOS.DETALHE(estab.id)}
                         className="font-semibold text-slate-900 dark:text-white hover:text-teal-600 dark:hover:text-teal-400 block truncate"
                         title={estab.razao_social}
                       >
@@ -268,7 +269,7 @@ export const EstabelecimentosListPage: React.FC = () => {
                     <td className="py-3 px-4 text-right whitespace-nowrap">
                       <div className="inline-flex items-center gap-1.5">
                         <Link
-                          to={`/estabelecimentos/${estab.id}`}
+                          to={ROUTES.ESTABELECIMENTOS.DETALHE(estab.id)}
                           className="p-1.5 text-slate-600 hover:text-teal-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-colors"
                           title="Visualizar Ficha Completa"
                         >
@@ -276,7 +277,7 @@ export const EstabelecimentosListPage: React.FC = () => {
                         </Link>
 
                         <Link
-                          to={`/estabelecimentos/${estab.id}/editar`}
+                          to={ROUTES.ESTABELECIMENTOS.EDITAR(estab.id)}
                           className="p-1.5 text-slate-600 hover:text-blue-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-colors"
                           title="Editar Cadastro"
                         >
@@ -284,7 +285,7 @@ export const EstabelecimentosListPage: React.FC = () => {
                         </Link>
 
                         <Link
-                          to={`/inspecoes?estabelecimento_id=${estab.id}`}
+                          to={`${ROUTES.INSPECOES.LIST}?estabelecimento_id=${estab.id}`}
                           className="p-1.5 text-slate-600 hover:text-purple-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-colors"
                           title="Fiscalizações deste estabelecimento"
                         >

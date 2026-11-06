@@ -25,6 +25,8 @@ import {
 import RiscoBadge from "../../components/estabelecimentos/RiscoBadge";
 import SituacaoAlvaraBadge from "../../components/estabelecimentos/SituacaoAlvaraBadge";
 import { useEstabelecimentoDetalhe } from "../../hooks/useEstabelecimentos";
+import { APP_CONFIG } from "../../config/app.config";
+import { ROUTES } from "../../config/routes.config";
 
 export const EstabelecimentoDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -51,11 +53,11 @@ export const EstabelecimentoDetailPage: React.FC = () => {
           Estabelecimento não encontrado
         </h2>
         <p className="text-xs text-slate-500 max-w-sm mx-auto">
-          Não foi possível localizar o estabelecimento solicitado no banco de dados da VISA Braúnas.
+          Não foi possível localizar o estabelecimento solicitado no banco de dados da {APP_CONFIG.orgao}.
         </p>
         <button
           type="button"
-          onClick={() => navigate("/estabelecimentos")}
+          onClick={() => navigate(ROUTES.ESTABELECIMENTOS.LIST)}
           className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
@@ -73,7 +75,7 @@ export const EstabelecimentoDetailPage: React.FC = () => {
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => navigate("/estabelecimentos")}
+              onClick={() => navigate(ROUTES.ESTABELECIMENTOS.LIST)}
               className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded"
               title="Voltar"
             >
@@ -98,7 +100,7 @@ export const EstabelecimentoDetailPage: React.FC = () => {
 
         <div className="flex items-center gap-2">
           <Link
-            to={`/estabelecimentos/${estab.id}/editar`}
+            to={ROUTES.ESTABELECIMENTOS.EDITAR(estab.id)}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-lg transition-colors"
           >
             <Edit className="w-3.5 h-3.5" />
@@ -106,7 +108,7 @@ export const EstabelecimentoDetailPage: React.FC = () => {
           </Link>
 
           <Link
-            to={`/inspecoes?estabelecimento_id=${estab.id}`}
+            to={`${ROUTES.INSPECOES.LIST}?estabelecimento_id=${estab.id}`}
             className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-500 rounded-lg shadow-xs transition-colors"
           >
             <ClipboardCheck className="w-3.5 h-3.5" />

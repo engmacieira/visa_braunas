@@ -8,6 +8,7 @@ import React from "react";
 import { Link, Navigate, Outlet, useLocation } from "react-router-dom";
 import { ShieldAlert } from "lucide-react";
 import { APP_CONFIG } from "../config/app.config";
+import { ROUTES } from "../config/routes.config";
 import { useAuth } from "../contexts/AuthContext";
 import { PerfilUsuario } from "../types/auth";
 
@@ -47,7 +48,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Redirecionamento para Login se não autenticado
   if (!isAuthenticated || !user) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to={ROUTES.AUTH.LOGIN} state={{ from: location }} replace />;
   }
 
   // Validação de Permissão por Perfil (RBAC)
@@ -84,7 +85,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
           <div className="mt-6">
             <Link
-              to="/"
+              to={ROUTES.DASHBOARD}
               className="inline-flex items-center justify-center px-4 py-2 text-xs font-medium text-white bg-slate-900 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-lg hover:bg-slate-800 transition-colors"
             >
               Voltar ao Painel Geral

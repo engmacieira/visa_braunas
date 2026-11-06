@@ -11,6 +11,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { APP_CONFIG } from "./config/app.config";
+import { ROUTES } from "./config/routes.config";
 import { AuthProvider } from "./contexts/AuthContext";
 import { AppLayout } from "./layouts/AppLayout";
 import { DashboardPage } from "./pages/DashboardPage";
@@ -52,14 +53,14 @@ export default function App() {
         <BrowserRouter>
           <Routes>
             {/* Rota Pública de Autenticação */}
-            <Route path="/login" element={<LoginPage />} />
+            <Route path={ROUTES.AUTH.LOGIN} element={<LoginPage />} />
 
             {/* Rota Pública de Validação de Autenticidade do Alvará (QR Code) */}
-            <Route path="/validar-alvara/:codigo" element={<ValidarAlvaraPublicPage />} />
-            <Route path="/validar-alvara" element={<ValidarAlvaraPublicPage />} />
+            <Route path={ROUTES.PUBLIC.VALIDAR_ALVARA_PATH} element={<ValidarAlvaraPublicPage />} />
+            <Route path={ROUTES.PUBLIC.VALIDAR_ALVARA_BASE_PATH} element={<ValidarAlvaraPublicPage />} />
 
             {/* Rota Pública do Canal Cidadão (Registro e Consulta de Denúncias Sanitárias) */}
-            <Route path="/denuncia-cidada" element={<DenunciaPublicaPage />} />
+            <Route path={ROUTES.PUBLIC.DENUNCIA_CIDADA_PATH} element={<DenunciaPublicaPage />} />
 
             {/* Rotas Protegidas sob o Shell Operacional (AppLayout) */}
             <Route
@@ -70,25 +71,25 @@ export default function App() {
               }
             >
               <Route index element={<DashboardPage />} />
-              <Route path="dashboard" element={<DashboardPage />} />
+              <Route path={ROUTES.DASHBOARD_ALIAS.replace(/^\//, "")} element={<DashboardPage />} />
               <Route
-                path="estabelecimentos"
+                path={ROUTES.ESTABELECIMENTOS.LIST_PATH}
                 element={<EstabelecimentosListPage />}
               />
               <Route
-                path="estabelecimentos/novo"
+                path={ROUTES.ESTABELECIMENTOS.NOVO_PATH}
                 element={<EstabelecimentoFormPage />}
               />
               <Route
-                path="estabelecimentos/:id"
+                path={ROUTES.ESTABELECIMENTOS.DETALHE_PATH}
                 element={<EstabelecimentoDetailPage />}
               />
               <Route
-                path="estabelecimentos/:id/editar"
+                path={ROUTES.ESTABELECIMENTOS.EDITAR_PATH}
                 element={<EstabelecimentoFormPage />}
               />
               <Route
-                path="inspecoes"
+                path={ROUTES.INSPECOES.LIST_PATH}
                 element={
                   <ProtectedRoute
                     allowedRoles={[
@@ -102,7 +103,7 @@ export default function App() {
                 }
               />
               <Route
-                path="inspecoes/:id/laudo"
+                path={ROUTES.INSPECOES.LAUDO_PATH}
                 element={
                   <ProtectedRoute
                     allowedRoles={[
@@ -116,7 +117,7 @@ export default function App() {
                 }
               />
               <Route
-                path="fiscalizacao/prazos"
+                path={ROUTES.INSPECOES.PRAZOS_PATH}
                 element={
                   <ProtectedRoute
                     allowedRoles={[
@@ -130,32 +131,32 @@ export default function App() {
                 }
               />
               <Route
-                path="licenciamento"
+                path={ROUTES.LICENCIAMENTO.LIST_PATH}
                 element={<LicenciamentoPage />}
               />
               <Route
-                path="licenciamento/requerimentos"
+                path={ROUTES.LICENCIAMENTO.REQUERIMENTOS_PATH}
                 element={<LicenciamentoPage />}
               />
               <Route
-                path="licenciamento/requerimentos/:id"
+                path={ROUTES.LICENCIAMENTO.REQUERIMENTO_DETALHE_PATH}
                 element={<RequerimentoDetailPage />}
               />
               <Route
-                path="licenciamento/alvaras/:id"
+                path={ROUTES.LICENCIAMENTO.ALVARA_PATH}
                 element={<AlvaraViewPage />}
               />
-              <Route path="ouvidoria" element={<DenunciasListPage />} />
+              <Route path={ROUTES.OUVIDORIA.LIST_PATH} element={<DenunciasListPage />} />
               <Route
-                path="ouvidoria/nova"
+                path={ROUTES.OUVIDORIA.NOVA_PATH}
                 element={<RegistrarDenunciaInternaPage />}
               />
               <Route
-                path="ouvidoria/:id"
+                path={ROUTES.OUVIDORIA.DETALHE_PATH}
                 element={<DenunciaDetailPage />}
               />
               <Route
-                path="indicadores"
+                path={ROUTES.INDICADORES.DASHBOARD_PATH}
                 element={
                   <ProtectedRoute
                     allowedRoles={[
@@ -169,7 +170,7 @@ export default function App() {
                 }
               />
               <Route
-                path="relatorios/sus"
+                path={ROUTES.RELATORIOS.SUS_PATH}
                 element={
                   <ProtectedRoute
                     allowedRoles={["admin_master", "coordenador"]}
@@ -179,7 +180,7 @@ export default function App() {
                 }
               />
               <Route
-                path="relatorios/sus/:ano"
+                path={ROUTES.RELATORIOS.SUS_ANO_PATH}
                 element={
                   <ProtectedRoute
                     allowedRoles={["admin_master", "coordenador"]}
@@ -190,7 +191,7 @@ export default function App() {
               />
 
               <Route
-                path="usuarios"
+                path={ROUTES.USUARIOS.LIST_PATH}
                 element={
                   <ProtectedRoute
                     allowedRoles={["admin_master", "coordenador"]}
@@ -202,7 +203,7 @@ export default function App() {
             </Route>
 
             {/* Rota de Fallback para redirecionar caminhos não reconhecidos */}
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
           </Routes>
         </BrowserRouter>
       </AuthProvider>

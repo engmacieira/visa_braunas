@@ -25,6 +25,7 @@ import {
   Target,
 } from "lucide-react";
 import { APP_CONFIG } from "../../config/app.config";
+import { ROUTES } from "../../config/routes.config";
 import { useAuth } from "../../contexts/AuthContext";
 import {
   useAlertasVencimento,
@@ -151,7 +152,7 @@ export const DashboardIndicadoresPage: React.FC = () => {
 
             {/* Botão Oficial: Gerar Relatório SUS */}
             <Link
-              to={`/relatorios/sus/${anoExercicio}`}
+              to={ROUTES.RELATORIOS.SUS(anoExercicio)}
               className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 rounded-lg shadow-xs hover:shadow transition-all"
             >
               <Printer className="w-4 h-4" />
@@ -234,9 +235,9 @@ export const DashboardIndicadoresPage: React.FC = () => {
                 indicador={ind}
                 onClick={() => {
                   if (ind.codigo === "IND-11") {
-                    navigate("/inspecoes");
+                    navigate(ROUTES.INSPECOES.LIST);
                   } else if (ind.codigo === "IND-12" || ind.codigo === "IND-13" || ind.codigo === "IND-14") {
-                    navigate("/estabelecimentos");
+                    navigate(ROUTES.ESTABELECIMENTOS.LIST);
                   }
                 }}
               />

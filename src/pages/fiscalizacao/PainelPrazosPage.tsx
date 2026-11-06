@@ -23,6 +23,7 @@ import {
   Search,
   UserCheck,
 } from "lucide-react";
+import { ROUTES } from "../../config/routes.config";
 import { useNotificacoesPendentes } from "../../hooks/useFiscalizacao";
 import { NotificacaoPrazoAlerta } from "../../types/fiscalizacao";
 import { AgendarInspecaoModal } from "../../components/fiscalizacao/AgendarInspecaoModal";
@@ -89,7 +90,7 @@ export const PainelPrazosPage: React.FC = () => {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Link
-              to="/inspecoes"
+              to={ROUTES.INSPECOES.LIST}
               className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-teal-600 transition-colors"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
@@ -309,7 +310,7 @@ export const PainelPrazosPage: React.FC = () => {
                       <td className="py-3.5 px-4">
                         <div className="flex flex-col">
                           <Link
-                            to={`/estabelecimentos/${item.estabelecimento_id}`}
+                            to={ROUTES.ESTABELECIMENTOS.DETALHE(item.estabelecimento_id)}
                             className="font-bold text-slate-800 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
                           >
                             {item.razao_social}
@@ -346,7 +347,7 @@ export const PainelPrazosPage: React.FC = () => {
                       <td className="py-3.5 px-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <Link
-                            to={`/inspecoes/${item.inspecao_id}/laudo`}
+                            to={ROUTES.INSPECOES.LAUDO(item.inspecao_id)}
                             className="p-1.5 text-slate-500 hover:text-teal-600 dark:text-slate-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                             title="Visualizar laudo e termo original"
                           >

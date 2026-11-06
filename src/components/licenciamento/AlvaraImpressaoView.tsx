@@ -8,6 +8,7 @@ import React from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { Award, Building2, Calendar, CheckCircle2, Shield } from "lucide-react";
 import { APP_CONFIG } from "../../config/app.config";
+import { ROUTES } from "../../config/routes.config";
 import { AlvaraSanitarioDetalhe } from "../../types/licenciamento";
 
 interface AlvaraImpressaoViewProps {
@@ -19,7 +20,7 @@ export const AlvaraImpressaoView: React.FC<AlvaraImpressaoViewProps> = ({ alvara
 
   // Monta a URL de validação pública completa
   const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
-  const urlValidacaoPublica = `${baseUrl}/validar-alvara/${alvara.codigo_autenticidade}`;
+  const urlValidacaoPublica = `${baseUrl}${ROUTES.PUBLIC.VALIDAR_ALVARA(alvara.codigo_autenticidade)}`;
 
   const dataEmissaoFormatada = new Date(alvara.data_emissao).toLocaleDateString("pt-BR", {
     timeZone: "UTC",
@@ -78,10 +79,10 @@ export const AlvaraImpressaoView: React.FC<AlvaraImpressaoViewProps> = ({ alvara
               </div>
             </div>
             <p className="text-[11px] font-bold tracking-widest uppercase text-slate-700">
-              República Federativa do Brasil • Estado de Minas Gerais
+              {APP_CONFIG.pais} • {APP_CONFIG.estadoExtenso}
             </p>
             <h1 className="text-base sm:text-lg font-black uppercase tracking-wider text-slate-950">
-              Prefeitura Municipal de {APP_CONFIG.municipio}
+              {APP_CONFIG.prefeitura}
             </h1>
             <p className="text-xs font-semibold text-slate-800 uppercase tracking-wide">
               {APP_CONFIG.secretaria} • {APP_CONFIG.orgao}
@@ -102,7 +103,7 @@ export const AlvaraImpressaoView: React.FC<AlvaraImpressaoViewProps> = ({ alvara
 
           {/* Texto de Fé Pública */}
           <p className="text-[11px] text-justify leading-relaxed text-slate-800 px-1">
-            A <strong>Coordenação Municipal de Vigilância Sanitária</strong>, no uso das atribuições legais conferidas pela Lei Orgânica Municipal, Código de Saúde do Estado de Minas Gerais e legislação federal correlata, <strong>CERTIFICA</strong> que o estabelecimento abaixo qualificado cumpriu as normas higiênico-sanitárias vigentes e está autorizado a exercer suas atividades regulamentadas:
+            A <strong>{APP_CONFIG.orgao}</strong>, no uso das atribuições legais conferidas pela Lei Orgânica Municipal, Código de Saúde do {APP_CONFIG.estadoExtenso} e legislação federal correlata, <strong>CERTIFICA</strong> que o estabelecimento abaixo qualificado cumpriu as normas higiênico-sanitárias vigentes e está autorizado a exercer suas atividades regulamentadas:
           </p>
 
           {/* Bloco 1: Identificação do Estabelecimento */}
@@ -257,15 +258,15 @@ export const AlvaraImpressaoView: React.FC<AlvaraImpressaoViewProps> = ({ alvara
             <div className="text-center flex flex-col justify-end pt-4">
               <div className="border-t border-slate-800 pt-1.5 mx-auto w-48">
                 <p className="text-xs font-bold text-slate-950">Autoridade Sanitária</p>
-                <p className="text-[10px] text-slate-600">Coordenação de Vigilância Sanitária</p>
-                <p className="text-[9px] text-slate-500 font-mono">Município de {APP_CONFIG.municipio} / MG</p>
+                <p className="text-[10px] text-slate-600">{APP_CONFIG.orgao}</p>
+                <p className="text-[9px] text-slate-500 font-mono">Município de {APP_CONFIG.municipio} / {APP_CONFIG.uf}</p>
               </div>
             </div>
           </div>
 
           {/* Rodapé Legal */}
           <div className="text-[9px] text-center text-slate-500 pt-2 border-t border-slate-200">
-            Este documento possui fé pública e validade jurídica em todo o território municipal de {APP_CONFIG.municipio}/MG. A fixação deste alvará em local visível e de fácil acesso ao público é obrigatória, nos termos do Código Sanitário Municipal.
+            Este documento possui fé pública e validade jurídica em todo o território municipal de {APP_CONFIG.municipio}/{APP_CONFIG.uf}. A fixação deste alvará em local visível e de fácil acesso ao público é obrigatória, nos termos do Código Sanitário Municipal.
           </div>
         </div>
       </div>

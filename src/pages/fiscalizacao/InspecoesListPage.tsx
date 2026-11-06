@@ -22,6 +22,7 @@ import {
   ShieldAlert,
   X,
 } from "lucide-react";
+import { ROUTES } from "../../config/routes.config";
 import {
   useIndicador11Vapt,
   useInspecoesList,
@@ -107,7 +108,7 @@ export const InspecoesListPage: React.FC = () => {
 
         <div className="flex items-center gap-2.5">
           <Link
-            to="/fiscalizacao/prazos"
+            to={ROUTES.INSPECOES.PRAZOS}
             className="px-3.5 py-2 text-xs font-semibold text-amber-800 dark:text-amber-200 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80 rounded-xl hover:bg-amber-100/60 shadow-2xs flex items-center gap-2 transition-colors"
           >
             <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400" />
@@ -150,7 +151,7 @@ export const InspecoesListPage: React.FC = () => {
 
         {/* Card 2: Prazos e Alertas */}
         <Link
-          to="/fiscalizacao/prazos"
+          to={ROUTES.INSPECOES.PRAZOS}
           className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-2xs hover:border-amber-400 transition-colors block"
         >
           <div className="flex items-center justify-between">
@@ -435,7 +436,7 @@ export const InspecoesListPage: React.FC = () => {
                       <td className="py-3.5 px-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <Link
-                            to={`/inspecoes/${item.id}/laudo`}
+                            to={ROUTES.INSPECOES.LAUDO(item.id)}
                             className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition-colors inline-flex items-center gap-1.5 ${
                               item.status === "concluida"
                                 ? "bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-100"
@@ -465,7 +466,7 @@ export const InspecoesListPage: React.FC = () => {
         estabelecimentoIdPreDefinido={estabelecimentoIdParam || undefined}
         onSucesso={(inspecao) => {
           if (inspecao?.id) {
-            navigate(`/inspecoes/${inspecao.id}/laudo`);
+            navigate(ROUTES.INSPECOES.LAUDO(inspecao.id));
           }
         }}
       />

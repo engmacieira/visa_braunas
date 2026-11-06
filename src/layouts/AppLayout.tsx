@@ -22,6 +22,7 @@ import {
   X,
 } from "lucide-react";
 import { APP_CONFIG } from "../config/app.config";
+import { ROUTES } from "../config/routes.config";
 import { useAuth } from "../contexts/AuthContext";
 import { PerfilUsuario } from "../types/auth";
 
@@ -35,45 +36,45 @@ interface NavMenuItem {
 const MENU_ITEMS: NavMenuItem[] = [
   {
     label: "Painel Geral",
-    path: "/",
+    path: ROUTES.DASHBOARD,
     icon: LayoutDashboard,
   },
   {
     label: "Estabelecimentos",
-    path: "/estabelecimentos",
+    path: ROUTES.ESTABELECIMENTOS.LIST,
     icon: Building2,
   },
   {
     label: "Fiscalização & VAPT",
-    path: "/inspecoes",
+    path: ROUTES.INSPECOES.LIST,
     icon: ClipboardCheck,
     allowedRoles: ["admin_master", "coordenador", "fiscal_tecnico"],
   },
   {
     label: "Painel de Prazos",
-    path: "/fiscalizacao/prazos",
+    path: ROUTES.INSPECOES.PRAZOS,
     icon: Clock,
     allowedRoles: ["admin_master", "coordenador", "fiscal_tecnico"],
   },
   {
     label: "Alvarás & Licenciamento",
-    path: "/licenciamento",
+    path: ROUTES.LICENCIAMENTO.LIST,
     icon: FileCheck,
   },
   {
     label: "Ouvidoria & Denúncias",
-    path: "/ouvidoria",
+    path: ROUTES.OUVIDORIA.LIST,
     icon: AlertCircle,
   },
   {
     label: "Metas & Indicadores",
-    path: "/indicadores",
+    path: ROUTES.INDICADORES.DASHBOARD,
     icon: BarChart3,
     allowedRoles: ["admin_master", "coordenador", "fiscal_tecnico"],
   },
   {
     label: "Usuários & Servidores",
-    path: "/usuarios",
+    path: ROUTES.USUARIOS.LIST,
     icon: Users,
     allowedRoles: ["admin_master", "coordenador"],
   },
@@ -121,7 +122,7 @@ export const AppLayout: React.FC = () => {
 
   const handleLogout = () => {
     logout();
-    navigate("/login");
+    navigate(ROUTES.AUTH.LOGIN);
   };
 
   const perfilMeta = user
@@ -154,7 +155,7 @@ export const AppLayout: React.FC = () => {
             </button>
 
             <Link
-              to="/"
+              to={ROUTES.DASHBOARD}
               className="flex items-center gap-2.5 text-slate-900 dark:text-white group focus-visible:outline-none"
             >
               <div className="w-9 h-9 rounded-lg bg-teal-600 text-white flex items-center justify-center font-bold shadow-xs">
@@ -343,7 +344,7 @@ export const AppLayout: React.FC = () => {
             <span>{APP_CONFIG.orgao}</span>
           </div>
           <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
-            © {new Date().getFullYear()} Prefeitura Municipal de {APP_CONFIG.municipio}. Todos os direitos reservados.
+            © {new Date().getFullYear()} {APP_CONFIG.prefeitura}. Todos os direitos reservados.
           </p>
         </div>
       </footer>

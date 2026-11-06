@@ -15,9 +15,10 @@ import {
   ExternalLink,
   FileCheck2,
   FileWarning,
-  RefreshCw,
   ShieldAlert,
 } from "lucide-react";
+import { APP_CONFIG } from "../../config/app.config";
+import { ROUTES } from "../../config/routes.config";
 import { AlertasVencimentoResponse } from "../../types/indicadores";
 
 interface TabelaAlertasOperacionaisProps {
@@ -46,7 +47,7 @@ export const TabelaAlertasOperacionais: React.FC<TabelaAlertasOperacionaisProps>
             Alertas Operacionais & Controle de Prazos Legais
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Monitoramento de termos de notificação de campo e vigência de alvarás de Braúnas/MG
+            Monitoramento de termos de notificação de campo e vigência de alvarás de {APP_CONFIG.municipio}/{APP_CONFIG.uf}
           </p>
         </div>
 
@@ -93,7 +94,7 @@ export const TabelaAlertasOperacionais: React.FC<TabelaAlertasOperacionaisProps>
       {/* Cards de Resumo Clicáveis */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Link
-          to="/fiscalizacao/prazos"
+          to={ROUTES.INSPECOES.PRAZOS}
           className="p-4 rounded-xl border border-rose-200 dark:border-rose-900/60 bg-rose-50/40 dark:bg-rose-950/20 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-all flex items-center justify-between group"
         >
           <div className="flex items-center gap-3">
@@ -116,7 +117,7 @@ export const TabelaAlertasOperacionais: React.FC<TabelaAlertasOperacionaisProps>
         </Link>
 
         <Link
-          to="/licenciamento"
+          to={ROUTES.LICENCIAMENTO.LIST}
           className="p-4 rounded-xl border border-amber-200 dark:border-amber-900/60 bg-amber-50/40 dark:bg-amber-950/20 hover:bg-amber-50 dark:hover:bg-amber-950/30 transition-all flex items-center justify-between group"
         >
           <div className="flex items-center gap-3">
@@ -209,7 +210,7 @@ export const TabelaAlertasOperacionais: React.FC<TabelaAlertasOperacionaisProps>
                       </td>
                       <td className="py-2.5 px-3 text-right">
                         <Link
-                          to={`/inspecoes`}
+                          to={ROUTES.INSPECOES.LIST}
                           className="inline-flex items-center gap-1 text-[11px] font-semibold text-teal-600 hover:text-teal-700 hover:underline"
                         >
                           <span>Reinspecionar</span>
@@ -268,7 +269,7 @@ export const TabelaAlertasOperacionais: React.FC<TabelaAlertasOperacionaisProps>
                     </td>
                     <td className="py-2.5 px-3 text-right">
                       <Link
-                        to="/licenciamento"
+                        to={ROUTES.LICENCIAMENTO.LIST}
                         className="inline-flex items-center gap-1 text-[11px] font-semibold text-teal-600 hover:text-teal-700 hover:underline"
                       >
                         <span>Abrir Renovação</span>

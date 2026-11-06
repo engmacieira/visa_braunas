@@ -42,16 +42,16 @@ export const RelatorioSusImpressaoView: React.FC<RelatorioSusImpressaoViewProps>
         </div>
 
         <div className="text-xs uppercase font-bold tracking-widest text-slate-700">
-          República Federativa do Brasil • Estado de Minas Gerais
+          {APP_CONFIG.pais} • {APP_CONFIG.estadoExtenso}
         </div>
         <h1 className="text-base font-extrabold uppercase tracking-tight text-slate-900 mt-0.5">
-          {relatorio.nome_prefeitura || `Prefeitura Municipal de ${APP_CONFIG.municipio}`}
+          {APP_CONFIG.prefeitura}
         </h1>
         <h2 className="text-xs font-semibold text-slate-800 uppercase mt-0.5">
-          {APP_CONFIG.secretaria || relatorio.nome_secretaria}
+          {APP_CONFIG.secretaria}
         </h2>
         <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wide mt-0.5">
-          {APP_CONFIG.orgao || relatorio.nome_coordenadoria}
+          {APP_CONFIG.orgao}
         </h3>
       </div>
 
@@ -204,7 +204,7 @@ export const RelatorioSusImpressaoView: React.FC<RelatorioSusImpressaoViewProps>
               {nomeCoordenador}
             </div>
             <div className="text-[11px] text-slate-600">
-              Coordenador de Vigilância Sanitária
+              {APP_CONFIG.orgao}
             </div>
             <div className="text-[10px] font-mono text-slate-500">
               Matrícula: {matriculaCoordenador}
@@ -214,13 +214,13 @@ export const RelatorioSusImpressaoView: React.FC<RelatorioSusImpressaoViewProps>
           <div className="flex flex-col items-center">
             <div className="w-56 border-b border-slate-900 mb-1.5" />
             <div className="font-bold text-slate-900 uppercase">
-              Secretaria Municipal de Saúde
+              {APP_CONFIG.secretaria}
             </div>
             <div className="text-[11px] text-slate-600">
               Gestor Municipal do SUS
             </div>
             <div className="text-[10px] font-mono text-slate-500">
-              Prefeitura Municipal de {APP_CONFIG.municipio}
+              {APP_CONFIG.prefeitura}
             </div>
           </div>
         </div>

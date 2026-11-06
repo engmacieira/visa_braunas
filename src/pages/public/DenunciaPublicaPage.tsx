@@ -149,7 +149,7 @@ export const DenunciaPublicaPage: React.FC = () => {
                 Canal Oficial de Ouvidoria Sanitária
               </span>
               <h1 className="text-sm font-bold text-slate-900 dark:text-white leading-tight">
-                Prefeitura Municipal de {APP_CONFIG.municipio} / {APP_CONFIG.uf}
+                {APP_CONFIG.prefeitura} / {APP_CONFIG.uf}
               </h1>
             </div>
           </div>
@@ -530,10 +530,10 @@ export const DenunciaPublicaPage: React.FC = () => {
       <footer className="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-6 text-center text-xs text-slate-500">
         <div className="max-w-2xl mx-auto px-4 space-y-1">
           <p className="font-semibold text-slate-700 dark:text-slate-300">
-            Prefeitura Municipal de {APP_CONFIG.municipio} • {APP_CONFIG.secretaria}
+            {APP_CONFIG.prefeitura} • {APP_CONFIG.secretaria}
           </p>
           <p className="text-[11px] text-slate-400">
-            Vigilância Sanitária Municipal • Canal de Atendimento ao Cidadão
+            {APP_CONFIG.orgao} • Canal de Atendimento ao Cidadão
           </p>
         </div>
       </footer>

@@ -18,9 +18,9 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { APP_CONFIG } from "../config/app.config";
+import { ROUTES } from "../config/routes.config";
 import { useAuth } from "../contexts/AuthContext";
 import { apiClient } from "../services/apiClient";
-
 import { useDashboardIndicadores } from "../hooks/useIndicadores";
 
 interface HealthData {
@@ -170,7 +170,7 @@ export const DashboardPage: React.FC = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <Link
-            to="/estabelecimentos"
+            to={ROUTES.ESTABELECIMENTOS.LIST}
             className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-teal-500 dark:hover:border-teal-500 transition-all hover:shadow-xs group"
           >
             <div className="flex items-center gap-3">
@@ -189,7 +189,7 @@ export const DashboardPage: React.FC = () => {
           </Link>
 
           <Link
-            to="/inspecoes"
+            to={ROUTES.INSPECOES.LIST}
             className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-teal-500 dark:hover:border-teal-500 transition-all hover:shadow-xs group"
           >
             <div className="flex items-center gap-3">
@@ -208,7 +208,7 @@ export const DashboardPage: React.FC = () => {
           </Link>
 
           <Link
-            to="/licenciamento"
+            to={ROUTES.LICENCIAMENTO.LIST}
             className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-teal-500 dark:hover:border-teal-500 transition-all hover:shadow-xs group"
           >
             <div className="flex items-center gap-3">
@@ -227,7 +227,7 @@ export const DashboardPage: React.FC = () => {
           </Link>
 
           <Link
-            to="/ouvidoria"
+            to={ROUTES.OUVIDORIA.LIST}
             className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-teal-500 dark:hover:border-teal-500 transition-all hover:shadow-xs group"
           >
             <div className="flex items-center gap-3">
@@ -246,7 +246,7 @@ export const DashboardPage: React.FC = () => {
           </Link>
 
           <Link
-            to="/indicadores"
+            to={ROUTES.INDICADORES.DASHBOARD}
             className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-teal-500 dark:hover:border-teal-500 transition-all hover:shadow-xs group"
           >
             <div className="flex items-center gap-3">
@@ -265,7 +265,7 @@ export const DashboardPage: React.FC = () => {
           </Link>
 
           <Link
-            to="/relatorios/sus"
+            to={ROUTES.RELATORIOS.SUS()}
             className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-teal-500 dark:hover:border-teal-500 transition-all hover:shadow-xs group"
           >
             <div className="flex items-center gap-3">

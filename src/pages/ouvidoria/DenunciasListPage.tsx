@@ -27,6 +27,7 @@ import {
   ShieldAlert,
   User,
 } from "lucide-react";
+import { ROUTES } from "../../config/routes.config";
 import { useDenunciasList, useFilaTrabalhoDenuncias } from "../../hooks/useOuvidoria";
 import { GravidadeDenuncia, StatusDenuncia } from "../../types/ouvidoria";
 import { GravidadeBadge } from "../../components/ouvidoria/GravidadeBadge";
@@ -116,7 +117,7 @@ export const DenunciasListPage: React.FC = () => {
 
         <div className="flex flex-wrap items-center gap-2.5">
           <Link
-            to="/denuncia-cidada"
+            to={ROUTES.PUBLIC.DENUNCIA_CIDADA}
             target="_blank"
             className="px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 shadow-2xs flex items-center gap-1.5 transition-colors"
           >
@@ -125,7 +126,7 @@ export const DenunciasListPage: React.FC = () => {
           </Link>
 
           <Link
-            to="/ouvidoria/nova"
+            to={ROUTES.OUVIDORIA.NOVA}
             className="px-4 py-2 text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 rounded-xl shadow-xs flex items-center gap-2 transition-colors"
           >
             <Plus className="w-4 h-4" />
@@ -405,7 +406,7 @@ export const DenunciasListPage: React.FC = () => {
                       {/* Ações */}
                       <td className="py-3.5 px-4 text-right">
                         <Link
-                          to={`/ouvidoria/${item.id}`}
+                          to={ROUTES.OUVIDORIA.DETALHE(item.id)}
                           className="px-3 py-1.5 text-xs font-bold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 rounded-lg hover:bg-teal-100/60 shadow-2xs transition-colors inline-flex items-center gap-1.5"
                         >
                           <Eye className="w-3.5 h-3.5" />

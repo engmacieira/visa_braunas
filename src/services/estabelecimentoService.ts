@@ -4,6 +4,8 @@
  */
 
 import { apiClient } from "./apiClient";
+import { APP_CONFIG } from "../config/app.config";
+import { stripFormatacao } from "../utils/formatters";
 import {
   CNAEItem,
   EstabelecimentoDetalhe,
@@ -62,19 +64,19 @@ export const estabelecimentoService = {
     // Formata o payload para o DTO esperado pelo FastAPI
     const dto = {
       tipo_cadastro: payload.tipo_cadastro,
-      cnpj_cpf: payload.cnpj_cpf.replace(/\D/g, ""),
+      cnpj_cpf: stripFormatacao(payload.cnpj_cpf),
       razao_social: payload.razao_social.trim(),
       nome_fantasia: payload.nome_fantasia?.trim() || null,
       inscricao_municipal: payload.inscricao_municipal?.trim() || null,
       natureza_juridica: payload.natureza_juridica?.trim() || null,
 
-      cep: payload.cep.replace(/\D/g, ""),
+      cep: stripFormatacao(payload.cep),
       logradouro: payload.logradouro.trim(),
       numero: payload.numero.trim(),
       complemento: payload.complemento?.trim() || null,
       bairro: payload.bairro.trim(),
-      municipio: payload.municipio.trim() || "Braúnas",
-      uf: payload.uf.trim().toUpperCase() || "MG",
+      municipio: payload.municipio.trim() || APP_CONFIG.municipio,
+      uf: payload.uf.trim().toUpperCase() || APP_CONFIG.uf,
       ponto_referencia: payload.ponto_referencia?.trim() || null,
       acesso_compartilhado_residencia: Boolean(
         payload.acesso_compartilhado_residencia
