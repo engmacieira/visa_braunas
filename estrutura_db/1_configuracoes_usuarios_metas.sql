@@ -101,7 +101,7 @@ CREATE TABLE configuracao_institucional (
     logradouro VARCHAR(200),
     numero VARCHAR(20),
     bairro VARCHAR(100),
-    cep VARCHAR(9),
+    cep VARCHAR(10),
     telefone_oficial VARCHAR(20),
     email_oficial VARCHAR(150),
     

@@ -189,7 +189,7 @@ class EstabelecimentoModel(Base, SoftDeleteAuditMixin):
     natureza_juridica: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
 
     # Localização
-    cep: Mapped[str] = mapped_column(String(9), nullable=False, default="35.189-000", server_default="35.189-000")
+    cep: Mapped[str] = mapped_column(String(10), nullable=False, default="35.189-000", server_default="35.189-000")
     logradouro: Mapped[str] = mapped_column(String(255), nullable=False)
     numero: Mapped[str] = mapped_column(String(20), nullable=False)
     complemento: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)

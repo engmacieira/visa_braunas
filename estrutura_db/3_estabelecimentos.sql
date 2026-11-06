@@ -95,7 +95,7 @@ CREATE TABLE estabelecimentos (
     natureza_juridica VARCHAR(100),
 
     -- Localização Física do Ponto
-    cep VARCHAR(9) NOT NULL DEFAULT '35.189-000',
+    cep VARCHAR(10) NOT NULL DEFAULT '35.189-000',
     logradouro VARCHAR(255) NOT NULL,
     numero VARCHAR(20) NOT NULL,
     complemento VARCHAR(100),

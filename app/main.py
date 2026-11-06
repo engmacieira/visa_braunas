@@ -8,7 +8,9 @@ from sqlalchemy import text
 
 from slowapi.errors import RateLimitExceeded
 
+from app.core.cache import init_cache
 from app.core.config import settings
+from app.core.latency_middleware import LatencyMonitoringMiddleware
 from app.core.limiter import _rate_limit_exceeded_custom_handler, limiter
 from app.core.security_middleware import SecurityHeadersMiddleware
 from app.infrastructure.database import async_engine
@@ -30,7 +32,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     Gerencia o ciclo de vida da aplicação FastAPI.
     Garante o encerramento seguro e liberação do pool de conexões assíncronas do banco.
     """
-    # Startup: Opcional aquecimento de conexões ou logs
+    # Startup: Inicialização do cache e recursos globais
+    await init_cache()
     yield
     # Shutdown: Descarte e fechamento limpo das conexões ativas
     await async_engine.dispose()
@@ -48,6 +51,9 @@ app = FastAPI(
 # Configuração do Rate Limiter
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_custom_handler)
+
+# Middleware de Telemetria e Latência (calcula tempo e injeta X-Response-Time)
+app.add_middleware(LatencyMonitoringMiddleware)
 
 # Middleware de Cabeçalhos Defensivos e HTTPS/HSTS
 app.add_middleware(SecurityHeadersMiddleware)

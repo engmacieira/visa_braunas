@@ -27,6 +27,7 @@ from app.infrastructure.models import (
     MetasExercicioModel,
     UsuarioModel,
 )
+from app.core.cache import init_cache
 from app.infrastructure.seeds import run_seeds
 from app.main import app
 
@@ -80,6 +81,9 @@ async def async_client(
         yield async_db_session
 
     app.dependency_overrides[get_db_session] = _override_get_db_session
+
+    # Garante inicialização do FastAPICache durante os testes com ASGITransport
+    await init_cache()
 
     transport = ASGITransport(app=app)
     async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:

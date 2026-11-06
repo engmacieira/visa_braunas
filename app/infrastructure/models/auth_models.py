@@ -159,7 +159,7 @@ class ConfiguracaoInstitucionalModel(Base, SoftDeleteAuditMixin):
     logradouro: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
     numero: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
     bairro: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    cep: Mapped[Optional[str]] = mapped_column(String(9), nullable=True)
+    cep: Mapped[Optional[str]] = mapped_column(String(10), nullable=True)
     telefone_oficial: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
     email_oficial: Mapped[Optional[str]] = mapped_column(String(150), nullable=True)
 

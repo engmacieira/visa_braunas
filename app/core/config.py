@@ -17,6 +17,14 @@ class Settings(BaseSettings):
         "postgresql+psycopg2://vigiminas_user:vigiminas_pass@localhost:5434/vigiminas_db"
     )
 
+    # Configurações do Pool Assíncrono do Banco de Dados
+    DB_POOL_SIZE: int = 20
+    DB_MAX_OVERFLOW: int = 30
+    DB_POOL_TIMEOUT: int = 30
+
+    # Cache e Mensageria (Opcional - InMemoryBackend por padrão caso ausente)
+    REDIS_URL: Union[str, None] = None
+
     # Segurança e Criptografia
     SECRET_KEY: str = "sua_chave_secreta_super_segura_deve_ser_alterada_em_producao"
     ALGORITHM: str = "HS256"

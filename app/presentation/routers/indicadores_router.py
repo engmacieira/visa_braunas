@@ -4,6 +4,7 @@ Router FastAPI: Indicadores Regulatórios, Metas Anuais e Relatórios Oficiais (
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi_cache.decorator import cache
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.application.indicadores.dtos import (
@@ -38,6 +39,7 @@ def get_indicadores_read_repo(session: AsyncSession = Depends(get_db_session)) -
     response_model=DashboardMetasConsolidadoDTO,
     summary="Dashboard Consolidado de Metas e Indicadores Regulatórios (11 a 15)",
 )
+@cache(expire=300)
 async def obter_dashboard_indicadores(
     ano: Optional[int] = Query(None, description="Ano civil de exercício (padrão: ano corrente)"),
     repo: IndicadoresReadRepository = Depends(get_indicadores_read_repo),

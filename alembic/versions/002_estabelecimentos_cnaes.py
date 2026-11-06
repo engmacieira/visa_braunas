@@ -144,7 +144,7 @@ def upgrade() -> None:
         sa.Column("razao_social", sa.String(200), nullable=False),
         sa.Column("nome_fantasia", sa.String(200), nullable=True),
         sa.Column("natureza_juridica", sa.String(100), nullable=True),
-        sa.Column("cep", sa.String(9), nullable=False, server_default="35.189-000"),
+        sa.Column("cep", sa.String(10), nullable=False, server_default="35.189-000"),
         sa.Column("logradouro", sa.String(255), nullable=False),
         sa.Column("numero", sa.String(20), nullable=False),
         sa.Column("complemento", sa.String(100), nullable=True),

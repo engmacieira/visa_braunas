@@ -1,7 +1,10 @@
 import uuid
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi_cache.decorator import cache
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.application.estabelecimentos.dtos import (
     EstabelecimentoCreateDTO,
@@ -40,6 +43,8 @@ from app.domain.estabelecimentos.value_objects import (
     InvalidCNPJException,
     InvalidCPFException,
 )
+from app.infrastructure.database import get_db_session
+from app.infrastructure.models import ConfiguracaoInstitucionalModel
 from app.presentation.dependencies import (
     get_auditoria_repository,
     get_client_ip,
@@ -61,6 +66,58 @@ require_operacional = require_roles([
     PerfilUsuario.DIGITADOR,
 ])
 require_gestor = require_roles([PerfilUsuario.ADMIN_MASTER, PerfilUsuario.COORDENADOR])
+
+
+@router.get(
+    "/configuracao",
+    response_model=Dict[str, Any],
+    status_code=status.HTTP_200_OK,
+    summary="Obter Configuração Institucional Municipal",
+    description="Retorna os parâmetros institucionais oficiais (município, secretaria, órgão de vigilância sanitária).",
+)
+@cache(expire=43200)
+async def get_configuracao_institucional(
+    session: AsyncSession = Depends(get_db_session),
+    _: Usuario = Depends(get_current_active_user),
+) -> Dict[str, Any]:
+    stmt = select(ConfiguracaoInstitucionalModel).where(
+        ConfiguracaoInstitucionalModel.singleton_key == 1,
+        ConfiguracaoInstitucionalModel.is_deleted.is_(False),
+    )
+    res = await session.execute(stmt)
+    cfg = res.scalars().first()
+    if not cfg:
+        return {
+            "municipio": "Braúnas",
+            "uf": "MG",
+            "nome_prefeitura": "Prefeitura Municipal de Braúnas",
+            "nome_secretaria": "Secretaria Municipal de Saúde",
+            "orgao_vigilancia": "Coordenação de Vigilância em Saúde e Vigilância Sanitária",
+            "cnpj_institucional": "18.303.187/0001-44",
+            "logradouro": "Avenida Juscelino Kubitschek",
+            "numero": "100",
+            "bairro": "Centro",
+            "cep": "35.189-000",
+            "telefone_oficial": "(33) 3294-1100",
+            "email_oficial": "visa@braunas.mg.gov.br",
+        }
+    return {
+        "municipio": cfg.municipio,
+        "uf": cfg.uf,
+        "nome_prefeitura": cfg.nome_prefeitura,
+        "nome_secretaria": cfg.nome_secretaria,
+        "orgao_vigilancia": cfg.orgao_vigilancia,
+        "cnpj_institucional": cfg.cnpj_institucional,
+        "logradouro": cfg.logradouro,
+        "numero": cfg.numero,
+        "bairro": cfg.bairro,
+        "cep": cfg.cep,
+        "telefone_oficial": cfg.telefone_oficial,
+        "email_oficial": cfg.email_oficial,
+        "url_brasao_prefeitura": cfg.url_brasao_prefeitura,
+        "url_logo_vigilancia": cfg.url_logo_vigilancia,
+        "texto_padrao_rodape_alvara": cfg.texto_padrao_rodape_alvara,
+    }
 
 
 @router.get(
