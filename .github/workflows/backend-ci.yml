@@ -46,6 +46,7 @@ jobs:
       PGUSER: vigiminas_user
       PGPASSWORD: vigiminas_pass
       PGDATABASE: vigiminas_db
+      PYTHONPATH: .
 
     steps:
       - name: Checkout Code
