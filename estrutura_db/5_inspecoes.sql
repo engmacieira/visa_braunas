@@ -159,10 +159,11 @@ FOR EACH ROW EXECUTE FUNCTION fn_atualizar_timestamp();
 -- 3.1. Apuração Oficial do Indicador 11 (VAPT - Saúde do Trabalhador)
 CREATE OR REPLACE VIEW vw_indicador_11_vapt_consolidado AS
 SELECT 
-    EXTRACT(YEAR FROM data_inicio) AS exercicio,
-    COUNT(*) AS total_acoes_vapt,
-    COUNT(*) FILTER (WHERE status = 'concluida') AS vapt_concluidas,
-    COUNT(*) FILTER (WHERE status = 'em_andamento') AS vapt_em_acompanhamento
+    EXTRACT(YEAR FROM data_inicio)::INTEGER AS ano_exercicio,
+    COUNT(*)::INTEGER AS total_inspecoes_vapt,
+    COUNT(*) FILTER (WHERE status = 'concluida')::INTEGER AS inspecoes_concluidas,
+    COUNT(*) FILTER (WHERE status = 'em_andamento')::INTEGER AS inspecoes_em_andamento,
+    COUNT(DISTINCT estabelecimento_id)::INTEGER AS estabelecimentos_distintos_atendidos
 FROM inspecoes
 WHERE motivo = 'vapt_trabalhador'
   AND is_deleted = FALSE
