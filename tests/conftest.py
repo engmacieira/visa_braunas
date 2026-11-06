@@ -150,7 +150,6 @@ async def setup_institucional_exercicio_2026(
             meta_cobertura_risco_1=100.0,
             meta_cobertura_risco_2=100.0,
             meta_cobertura_risco_3=100.0,
-            meta_atendimento_denuncias_dias=15,
             is_active=True,
             is_deleted=False,
         )

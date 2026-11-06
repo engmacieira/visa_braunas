@@ -67,8 +67,10 @@ class RepresentanteLegalResponseDTO(BaseModel):
 
 
 class EstabelecimentoCreateDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     tipo_cadastro: TipoPessoa = Field(default=TipoPessoa.PJ)
-    cnpj_cpf: str = Field(..., description="CNPJ (14 dígitos) ou CPF (11 dígitos)")
+    cnpj_cpf: str = Field(..., min_length=11, max_length=20, description="CNPJ (14 dígitos) ou CPF (11 dígitos)")
     razao_social: str = Field(..., min_length=2, max_length=200)
     nome_fantasia: Optional[str] = Field(None, max_length=200)
     inscricao_municipal: Optional[str] = Field(None, max_length=50)

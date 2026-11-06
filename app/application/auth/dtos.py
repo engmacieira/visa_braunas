@@ -8,8 +8,10 @@ from app.domain.auth.entities import PerfilUsuario, TipoOperacaoAuditoria
 
 class LoginDTO(BaseModel):
     """Schema de requisição de login."""
-    email: EmailStr = Field(..., description="E-mail funcional do servidor")
-    senha: str = Field(..., min_length=6, description="Senha do usuário")
+    model_config = ConfigDict(extra="forbid")
+
+    email: EmailStr = Field(..., max_length=150, description="E-mail funcional do servidor")
+    senha: str = Field(..., min_length=6, max_length=128, description="Senha do usuário")
 
 
 class TokenDTO(BaseModel):
@@ -32,13 +34,15 @@ class TokenPayloadDTO(BaseModel):
 
 class UsuarioCreateDTO(BaseModel):
     """Schema para cadastro de novo servidor/usuário."""
-    email: EmailStr
-    senha: str = Field(..., min_length=6, description="Senha de acesso inicial")
+    model_config = ConfigDict(extra="forbid")
+
+    email: EmailStr = Field(..., max_length=150)
+    senha: str = Field(..., min_length=6, max_length=128, description="Senha de acesso inicial")
     perfil: PerfilUsuario = PerfilUsuario.DIGITADOR
     nome_completo: str = Field(..., min_length=3, max_length=200)
-    cpf: str = Field(..., description="CPF com ou sem pontuação (11 dígitos)")
+    cpf: str = Field(..., min_length=11, max_length=14, description="CPF com ou sem pontuação (11 dígitos)")
     matricula: Optional[str] = Field(None, max_length=50)
-    cargo: str = Field(default="Fiscal Sanitário", max_length=100)
+    cargo: str = Field(default="Fiscal Sanitário", min_length=2, max_length=100)
     portaria_nomeacao: Optional[str] = Field(None, max_length=100)
     telefone_contato: Optional[str] = Field(None, max_length=20)
     url_assinatura_rubrica: Optional[str] = None
