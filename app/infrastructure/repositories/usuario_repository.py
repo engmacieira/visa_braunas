@@ -20,11 +20,18 @@ class UsuarioRepository(IUsuarioRepository):
 
     @staticmethod
     def _to_entity(model: UsuarioModel) -> Usuario:
+        perfil_val = model.perfil
+        if isinstance(perfil_val, str):
+            try:
+                perfil_val = PerfilUsuario(perfil_val)
+            except ValueError:
+                pass
+
         return Usuario(
             id=model.id,
             email=model.email,
             senha_hash=model.senha_hash,
-            perfil=model.perfil,
+            perfil=perfil_val,
             nome_completo=model.nome_completo,
             cpf=model.cpf,
             matricula=model.matricula,

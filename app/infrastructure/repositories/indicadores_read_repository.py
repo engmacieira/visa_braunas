@@ -108,11 +108,12 @@ class IndicadoresReadRepository(IIndicadoresReadRepository):
         # Contagem de estabelecimentos ativos por grau de risco preponderante
         stmt_estab = text("""
             SELECT 
-                grau_risco_preponderante,
-                COUNT(id) AS total
-            FROM vw_estabelecimentos_risco_consolidado
-            WHERE situacao_estabelecimento = 'Ativo'
-            GROUP BY grau_risco_preponderante
+                v.risco_sanitario_preponderante AS grau_risco_preponderante,
+                COUNT(v.estabelecimento_id) AS total
+            FROM vw_estabelecimentos_risco_consolidado v
+            JOIN estabelecimentos e ON v.estabelecimento_id = e.id
+            WHERE e.situacao_estabelecimento = 'Ativo' AND e.is_deleted = FALSE
+            GROUP BY v.risco_sanitario_preponderante
         """)
         res_estab = await self.session.execute(stmt_estab)
         estab_por_risco = {r["grau_risco_preponderante"]: r["total"] for r in res_estab.mappings().all()}
@@ -123,15 +124,17 @@ class IndicadoresReadRepository(IIndicadoresReadRepository):
         # Risco III: Inspecionados no exercício (inspeção concluída no ano)
         stmt_cobertura = text("""
             SELECT 
-                e.grau_risco_preponderante,
-                COUNT(DISTINCT e.id) AS total_fiscalizados
-            FROM vw_estabelecimentos_risco_consolidado e
-            JOIN inspecoes i ON e.id = i.estabelecimento_id
+                v.risco_sanitario_preponderante AS grau_risco_preponderante,
+                COUNT(DISTINCT v.estabelecimento_id) AS total_fiscalizados
+            FROM vw_estabelecimentos_risco_consolidado v
+            JOIN estabelecimentos e ON v.estabelecimento_id = e.id
+            JOIN inspecoes i ON v.estabelecimento_id = i.estabelecimento_id
             WHERE e.situacao_estabelecimento = 'Ativo'
+              AND e.is_deleted = FALSE
               AND i.status = 'concluida'
               AND EXTRACT(YEAR FROM i.data_inicio) = :ano
               AND i.is_deleted = FALSE
-            GROUP BY e.grau_risco_preponderante
+            GROUP BY v.risco_sanitario_preponderante
         """)
         res_cob = await self.session.execute(stmt_cobertura, {"ano": ano})
         fiscalizados_por_risco = {r["grau_risco_preponderante"]: r["total_fiscalizados"] for r in res_cob.mappings().all()}
@@ -219,18 +222,24 @@ class IndicadoresReadRepository(IIndicadoresReadRepository):
         # 1. Notificações com prazo a vencer da view vw_inspecoes_notificacoes_a_vencer
         stmt_notif = text("""
             SELECT 
-                inspecao_id,
-                numero_termo,
-                estabelecimento_id,
-                razao_social,
-                cnpj_cpf,
-                fiscal_responsavel,
-                TO_CHAR(data_inicio, 'YYYY-MM-DD') AS data_inicio,
-                TO_CHAR(data_limite_cumprimento, 'YYYY-MM-DD') AS data_limite_cumprimento,
-                dias_restantes,
-                urgencia_vencimento
-            FROM vw_inspecoes_notificacoes_a_vencer
-            ORDER BY dias_restantes ASC
+                v.inspecao_id,
+                v.numero_termo,
+                v.estabelecimento_id,
+                v.razao_social,
+                e.cnpj_cpf,
+                v.fiscal_responsavel,
+                TO_CHAR(i.data_inicio, 'YYYY-MM-DD') AS data_inicio,
+                TO_CHAR(v.data_limite_adequacao, 'YYYY-MM-DD') AS data_limite_cumprimento,
+                v.dias_restantes,
+                CASE
+                    WHEN v.dias_restantes <= 5 THEN 'Crítico'
+                    WHEN v.dias_restantes <= 15 THEN 'Moderado'
+                    ELSE 'Normal'
+                END AS urgencia_vencimento
+            FROM vw_inspecoes_notificacoes_a_vencer v
+            JOIN estabelecimentos e ON v.estabelecimento_id = e.id
+            JOIN inspecoes i ON v.inspecao_id = i.id
+            ORDER BY v.dias_restantes ASC
             LIMIT 50
         """)
         res_notif = await self.session.execute(stmt_notif)
@@ -239,16 +248,21 @@ class IndicadoresReadRepository(IIndicadoresReadRepository):
         # 2. Documentos com prazo a vencer da view vw_documentos_proximos_vencimento
         stmt_docs = text("""
             SELECT 
-                documento_id,
-                estabelecimento_id,
-                razao_social,
-                nome_documento,
-                categoria,
-                TO_CHAR(data_vencimento, 'YYYY-MM-DD') AS data_vencimento,
-                dias_para_vencimento,
-                status_vigencia
-            FROM vw_documentos_proximos_vencimento
-            ORDER BY dias_para_vencimento ASC
+                ed.id AS documento_id,
+                v.estabelecimento_id,
+                v.razao_social,
+                v.nome_documento,
+                td.categoria,
+                TO_CHAR(v.data_validade, 'YYYY-MM-DD') AS data_vencimento,
+                v.dias_para_vencer AS dias_para_vencimento,
+                'Vigente' AS status_vigencia
+            FROM vw_documentos_proximos_vencimento v
+            JOIN estabelecimento_documentos ed ON v.estabelecimento_id = ed.estabelecimento_id
+                AND v.data_validade = ed.data_validade
+                AND ed.eh_versao_atual = TRUE
+                AND ed.is_deleted = FALSE
+            JOIN tipos_documentos td ON ed.tipo_documento_id = td.id
+            ORDER BY v.dias_para_vencer ASC
             LIMIT 50
         """)
         res_docs = await self.session.execute(stmt_docs)
