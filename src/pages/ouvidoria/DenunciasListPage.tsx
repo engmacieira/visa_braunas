@@ -72,7 +72,10 @@ export const DenunciasListPage: React.FC = () => {
 
   const { data: filaTrabalho = [] } = useFilaTrabalhoDenuncias(0, 100);
 
-  const denuncias = denunciasData?.items || [];
+  const denuncias =
+    denunciasData?.items ||
+    (denunciasData as { itens?: typeof denunciasData extends { items: infer T } ? T : never } | undefined)?.itens ||
+    [];
 
   // Contadores para métricas
   const totalUrgentes = useMemo(() => {

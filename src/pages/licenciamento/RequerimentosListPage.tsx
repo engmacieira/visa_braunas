@@ -70,7 +70,10 @@ export const RequerimentosListPage: React.FC = () => {
 
   const { data: alvarasData } = useAlvarasList({ limit: 1 });
 
-  const requerimentos = requerimentosData?.items || [];
+  const requerimentos =
+    requerimentosData?.items ||
+    (requerimentosData as { itens?: typeof requerimentosData extends { items: infer T } ? T : never } | undefined)?.itens ||
+    [];
 
   // Filtragem local complementar por texto (protocolo, razão social declarada ou CNPJ)
   const requerimentosFiltrados = useMemo(() => {

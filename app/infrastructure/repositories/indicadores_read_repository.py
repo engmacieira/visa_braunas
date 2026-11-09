@@ -190,13 +190,14 @@ class IndicadoresReadRepository(IIndicadoresReadRepository):
                 e.cnpj_cpf,
                 e.razao_social,
                 e.nome_fantasia,
-                e.grau_risco_preponderante AS grau_risco,
+                v.risco_sanitario_preponderante AS grau_risco,
                 e.situacao_alvara,
                 e.numero_alvara,
                 CASE WHEN ultima_insp.id IS NOT NULL THEN TRUE ELSE FALSE END AS fiscalizado_no_exercicio,
                 TO_CHAR(ultima_insp.data_inicio, 'YYYY-MM-DD') AS data_ultima_inspecao,
                 ultima_insp.resultado AS resultado_ultima_inspecao
-            FROM vw_estabelecimentos_risco_consolidado e
+            FROM estabelecimentos e
+            JOIN vw_estabelecimentos_risco_consolidado v ON e.id = v.estabelecimento_id
             LEFT JOIN LATERAL (
                 SELECT i.id, i.data_inicio, i.resultado
                 FROM inspecoes i
@@ -208,8 +209,9 @@ class IndicadoresReadRepository(IIndicadoresReadRepository):
                 LIMIT 1
             ) ultima_insp ON TRUE
             WHERE e.situacao_estabelecimento = 'Ativo'
-              AND e.grau_risco_preponderante = :grau_risco
+              AND v.risco_sanitario_preponderante = :grau_risco
               AND (:apenas_nao_fiscalizados = FALSE OR ultima_insp.id IS NULL)
+              AND e.is_deleted = FALSE
             ORDER BY e.razao_social ASC
         """
         res = await self.session.execute(
@@ -295,7 +297,12 @@ class IndicadoresReadRepository(IIndicadoresReadRepository):
             "uf": config.uf if config else "MG",
             "nome_prefeitura": config.nome_prefeitura if config else "Prefeitura Municipal de Braúnas",
             "nome_secretaria": config.nome_secretaria if config else "Secretaria Municipal de Saúde",
-            "nome_coordenadoria": config.nome_coordenadoria if config else "Coordenação Municipal de Vigilância Sanitária",
+            "nome_coordenadoria": getattr(config, "orgao_vigilancia", "Coordenação Municipal de Vigilância Sanitária") if config else "Coordenação Municipal de Vigilância Sanitária",
+        }
+
+        return {
+            "configuracao": config_dict,
+            "ano_exercicio": ano,
         }
 
         return {

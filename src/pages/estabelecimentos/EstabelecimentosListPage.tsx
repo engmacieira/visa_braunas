@@ -57,7 +57,7 @@ export const EstabelecimentosListPage: React.FC = () => {
 
   const { data, isLoading, isFetching, refetch } = useEstabelecimentosList(filtros);
 
-  const estabelecimentos = data?.itens || [];
+  const estabelecimentos = data?.itens || (data as { items?: typeof data extends { itens: infer T } ? T : never } | undefined)?.items || [];
   const totalRegistros = data?.total || 0;
   const totalPaginas = Math.ceil(totalRegistros / ITENS_POR_PAGINA) || 1;
 

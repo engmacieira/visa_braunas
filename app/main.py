@@ -67,15 +67,16 @@ app.add_middleware(LatencyMonitoringMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
 
 # Configuração do Middleware de CORS
-if settings.BACKEND_CORS_ORIGINS:
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origin_regex=r"https://.*\.run\.app|https://.*\.ngrok-free\.app|http://localhost:\d+",
-        allow_origins=settings.BACKEND_CORS_ORIGINS if settings.BACKEND_CORS_ORIGINS else [],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+# Configuração do Middleware de CORS
+cors_origins = [str(origin) for origin in settings.BACKEND_CORS_ORIGINS] if settings.BACKEND_CORS_ORIGINS else ["http://localhost:3000", "http://localhost:5173"]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origin_regex=r"https://.*\.run\.app|https://.*\.ngrok-free\.app|http://localhost:\d+",
+    allow_origins=cors_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Registro de Rotas da API v1 via SSOT (settings.API_V1_STR)
 app.include_router(system_router, prefix=settings.API_V1_STR)
@@ -114,6 +115,13 @@ async def root() -> Dict[str, Any]:
     "/health",
     tags=["Monitoramento"],
     summary="Healthcheck da Aplicação e Conectividade",
+    response_model=Dict[str, Any],
+    status_code=status.HTTP_200_OK,
+)
+@app.get(
+    settings.API_V1_STR + "/health",
+    tags=["Monitoramento"],
+    summary="Healthcheck da Aplicação e Conectividade (v1)",
     response_model=Dict[str, Any],
     status_code=status.HTTP_200_OK,
 )
