@@ -13,6 +13,7 @@ __pycache__/
 *$py.class
 minhapasta/
 backup-firestore-local/
+etl/
 backup-firestore-local.zip
 
 .coverage

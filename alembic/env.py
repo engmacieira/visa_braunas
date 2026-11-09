@@ -46,6 +46,16 @@ def run_migrations_offline() -> None:
         context.run_migrations()
 
 
+def include_object(object, name, type_, reflected, compare_to):
+    """
+    Filtro de segurança para o Alembic autogenerate ignorar schemas
+    internos do Supabase (auth, storage, realtime, vault, etc.)
+    e focar estritamente nas tabelas mapeadas no Base.metadata do projeto.
+    """
+    if type_ == "table" and object.schema and object.schema != "public":
+        return False
+    return True
+
 def run_migrations_online() -> None:
     """
     Executa migrações no modo 'online'.
@@ -64,8 +74,9 @@ def run_migrations_online() -> None:
             connection=connection,
             target_metadata=target_metadata,
             compare_type=True,
-            compare_server_default=True,
-            include_schemas=True,
+            compare_server_default=False,  # <--- Altere para False para evitar o erro de sintaxe
+            include_schemas=False,
+            include_object=include_object,
         )
 
         with context.begin_transaction():

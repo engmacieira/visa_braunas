@@ -271,7 +271,6 @@ class EstabelecimentoModel(Base, SoftDeleteAuditMixin):
     )
 
     __table_args__ = (
-        Index("uq_estabelecimentos_cnpj_cpf", "cnpj_cpf", unique=True, postgresql_where=text("is_deleted = FALSE")),
         Index("uq_estabelecimentos_firestore_id", "firestore_id", unique=True, postgresql_where=text("firestore_id IS NOT NULL AND is_deleted = FALSE")),
         Index("idx_estabelecimentos_cnpj_cpf", "cnpj_cpf", postgresql_where=text("is_deleted = FALSE")),
         Index("idx_estabelecimentos_risco_alvara", "nivel_risco", "situacao_alvara", postgresql_where=text("is_deleted = FALSE")),
