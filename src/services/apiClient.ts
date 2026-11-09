@@ -6,7 +6,12 @@
 
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from "axios";
 import { APP_CONFIG } from "../config/app.config";
+import { applyAxiosDebugMiddleware } from "./axiosDebugMiddleware";
+import { attachLoadingInterceptors } from "./loadingManager";
 
+/**
+ * Cliente HTTP principal autenticado para consumo de endpoints protegidos da API
+ */
 export const apiClient: AxiosInstance = axios.create({
   baseURL: APP_CONFIG.apiBaseUrl,
   timeout: 15000,
@@ -15,6 +20,25 @@ export const apiClient: AxiosInstance = axios.create({
     Accept: "application/json",
   },
 });
+
+/**
+ * Cliente HTTP público isolado para consultas de cidadãos e validação pública de QR Code
+ */
+export const publicApiClient: AxiosInstance = axios.create({
+  baseURL: APP_CONFIG.apiBaseUrl,
+  timeout: 10000,
+  headers: {
+    Accept: "application/json",
+  },
+});
+
+// 1. Rastreamento reativo de requisições ativas para o indicador de Loading Global
+attachLoadingInterceptors(apiClient);
+attachLoadingInterceptors(publicApiClient);
+
+// 2. Middleware de Depuração de Rede e API em ambas as instâncias
+applyAxiosDebugMiddleware(apiClient);
+applyAxiosDebugMiddleware(publicApiClient);
 
 // Interceptor de Requisição: Injeta automaticamente o Bearer Token
 apiClient.interceptors.request.use(

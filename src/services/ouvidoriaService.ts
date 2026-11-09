@@ -3,9 +3,7 @@
  * Centraliza requisições REST tipadas para triagem, despacho fiscal e consulta cidadã.
  */
 
-import axios from "axios";
-import { apiClient } from "./apiClient";
-import { APP_CONFIG } from "../config/app.config";
+import { apiClient, publicApiClient } from "./apiClient";
 import {
   ConcluirDenunciaDTO,
   DenunciaDetalhe,
@@ -18,15 +16,6 @@ import {
   RegistrarDenunciaDTO,
 } from "../types/ouvidoria";
 import { EstabelecimentoDetalhe } from "../types/estabelecimento";
-
-// Cliente público isolado sem interceptors de autenticação
-const publicApiClient = axios.create({
-  baseURL: APP_CONFIG.apiBaseUrl,
-  timeout: 10000,
-  headers: {
-    Accept: "application/json",
-  },
-});
 
 export const ouvidoriaService = {
   /**

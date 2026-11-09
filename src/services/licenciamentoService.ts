@@ -3,9 +3,7 @@
  * Centraliza requisições REST tipadas para tramitação de requerimentos e emissão de alvarás.
  */
 
-import axios from "axios";
-import { apiClient } from "./apiClient";
-import { APP_CONFIG } from "../config/app.config";
+import { apiClient, publicApiClient } from "./apiClient";
 import {
   AlvaraFilters,
   AlvaraSanitarioDetalhe,
@@ -20,15 +18,6 @@ import {
   ValidacaoAlvaraPublicoResponse,
 } from "../types/licenciamento";
 import { EstabelecimentoDetalhe } from "../types/estabelecimento";
-
-// Cliente HTTP sem interceptors de autenticação, para rotas 100% públicas
-const publicApiClient = axios.create({
-  baseURL: APP_CONFIG.apiBaseUrl,
-  timeout: 10000,
-  headers: {
-    Accept: "application/json",
-  },
-});
 
 export const licenciamentoService = {
   /**
