@@ -78,6 +78,9 @@ class InspecaoRepository(IInspecaoRepository):
         model = result.unique().scalar_one_or_none()
         return self._to_entity(model) if model else None
 
+    async def buscar_por_id(self, inspecao_id: uuid.UUID) -> Optional[Inspecao]:
+        return await self.get_by_id(inspecao_id)
+
     async def get_by_numero_termo(self, numero_termo: str) -> Optional[Inspecao]:
         clean = numero_termo.strip().upper()
         query = (

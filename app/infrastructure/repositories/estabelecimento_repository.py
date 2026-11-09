@@ -189,6 +189,9 @@ class EstabelecimentoRepository(IEstabelecimentoRepository):
         model = result.unique().scalar_one_or_none()
         return self._to_entity(model) if model else None
 
+    async def buscar_por_id(self, estabelecimento_id: uuid.UUID) -> Optional[Estabelecimento]:
+        return await self.get_by_id(estabelecimento_id)
+
     async def get_by_cnpj_cpf(self, cnpj_cpf: str, include_deleted: bool = False) -> Optional[Estabelecimento]:
         clean = "".join(filter(str.isdigit, cnpj_cpf))
         query = self._base_query().where(EstabelecimentoModel.cnpj_cpf == clean)
