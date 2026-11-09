@@ -135,6 +135,7 @@ class DenunciaRepository(IDenunciaRepository):
             model.is_deleted = denuncia.is_deleted
 
         await self.session.flush()
+        await self.session.refresh(model)
         return self._to_domain(model)
 
     async def buscar_por_id(self, id: uuid.UUID) -> Optional[Denuncia]:

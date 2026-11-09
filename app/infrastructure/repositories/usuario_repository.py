@@ -55,6 +55,9 @@ class UsuarioRepository(IUsuarioRepository):
         model = result.scalar_one_or_none()
         return self._to_entity(model) if model else None
 
+    async def buscar_por_id(self, user_id: uuid.UUID) -> Optional[Usuario]:
+        return await self.get_by_id(user_id)
+
     async def get_by_email(self, email: str, include_deleted: bool = False) -> Optional[Usuario]:
         clean_email = email.strip().lower()
         query = select(UsuarioModel).where(func.lower(UsuarioModel.email) == clean_email)
