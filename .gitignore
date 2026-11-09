@@ -12,5 +12,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 minhapasta/
+backup-firestore-local/
+backup-firestore-local.zip
 
 .coverage
