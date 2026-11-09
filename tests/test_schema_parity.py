@@ -84,7 +84,7 @@ def test_conditional_unique_indexes_parity():
         "tipos_documentos": ["uq_tipos_documentos_codigo"],
         "alvaras_sanitarios": ["uq_alvara_numero_exercicio", "uq_alvara_codigo_autenticidade"],
         "representantes_legais": ["uq_representantes_cpf"],
-        "estabelecimentos": ["uq_estabelecimentos_cnpj_cpf", "uq_estabelecimentos_firestore_id"],
+        "estabelecimentos": ["uq_estabelecimentos_firestore_id"],
         "estabelecimento_cnaes": ["uq_estab_cnae_associacao", "uq_estabelecimento_cnae_principal"],
         "estabelecimento_documentos": ["uq_estab_tipo_doc_vigente"],
         "responsaveis_tecnicos": ["uq_rt_cpf", "uq_rt_registro_uf"],
