@@ -21,7 +21,7 @@ from app.application.ouvidoria.use_cases.gerenciar_denuncia import (
     DespacharDenunciaUseCase,
     RegistrarDenunciaUseCase,
 )
-from app.domain.auth.entities import Usuario
+from app.domain.auth.entities import PerfilUsuario, Usuario
 from app.domain.ouvidoria.enums import GravidadeDenuncia, StatusDenuncia
 from app.infrastructure.database import get_db_session
 from app.infrastructure.repositories.estabelecimento_repository import EstabelecimentoRepository
@@ -107,7 +107,7 @@ async def listar_fila_trabalho(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     session: AsyncSession = Depends(get_db_session),
-    _: Usuario = Depends(require_roles(["admin_master", "coordenador", "fiscal_tecnico"])),
+    _: Usuario = Depends(require_roles([PerfilUsuario.ADMIN_MASTER, PerfilUsuario.COORDENADOR, PerfilUsuario.FISCAL_TECNICO])),
 ):
     repo = DenunciaRepository(session)
     items = await repo.listar_fila_trabalho(skip=skip, limit=limit)
@@ -226,7 +226,7 @@ async def obter_denuncia(
 async def despachar_denuncia(
     id: uuid.UUID,
     input_dto: DespacharDenunciaInputDTO,
-    current_user: Usuario = Depends(require_roles(["admin_master", "coordenador"])),
+    current_user: Usuario = Depends(require_roles([PerfilUsuario.ADMIN_MASTER, PerfilUsuario.COORDENADOR])),
     use_case: DespacharDenunciaUseCase = Depends(get_despachar_denuncia_use_case),
 ):
     try:
@@ -248,7 +248,7 @@ async def despachar_denuncia(
 async def concluir_denuncia(
     id: uuid.UUID,
     input_dto: ConcluirDenunciaInputDTO,
-    current_user: Usuario = Depends(require_roles(["admin_master", "coordenador", "fiscal_tecnico"])),
+    current_user: Usuario = Depends(require_roles([PerfilUsuario.ADMIN_MASTER, PerfilUsuario.COORDENADOR, PerfilUsuario.FISCAL_TECNICO])),
     use_case: ConcluirDenunciaUseCase = Depends(get_concluir_denuncia_use_case),
 ):
     try:

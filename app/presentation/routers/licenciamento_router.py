@@ -26,7 +26,8 @@ from app.application.licenciamento.use_cases.submeter_requerimento import (
     AnalisarRequerimentoUseCase,
     SubmeterRequerimentoUseCase,
 )
-from app.domain.auth.entities import Usuario
+from app.core.constants import RATE_LIMIT_PUBLIC
+from app.domain.auth.entities import PerfilUsuario, Usuario
 from app.domain.licenciamento.enums import StatusAlvara, StatusRequerimento
 from app.infrastructure.database import get_db_session
 from app.infrastructure.repositories.estabelecimento_repository import EstabelecimentoRepository
@@ -185,7 +186,7 @@ async def obter_requerimento(
 async def analisar_requerimento(
     id: uuid.UUID,
     input_dto: AnalisarRequerimentoInputDTO,
-    current_user: Usuario = Depends(require_roles(["admin_master", "coordenador", "fiscal_tecnico"])),
+    current_user: Usuario = Depends(require_roles([PerfilUsuario.ADMIN_MASTER, PerfilUsuario.COORDENADOR, PerfilUsuario.FISCAL_TECNICO])),
     use_case: AnalisarRequerimentoUseCase = Depends(get_analisar_requerimento_use_case),
 ):
     try:
@@ -214,7 +215,7 @@ async def analisar_requerimento(
 )
 async def emitir_alvara(
     input_dto: EmitirAlvaraSanitarioInputDTO,
-    current_user: Usuario = Depends(require_roles(["admin_master", "coordenador", "fiscal_tecnico"])),
+    current_user: Usuario = Depends(require_roles([PerfilUsuario.ADMIN_MASTER, PerfilUsuario.COORDENADOR, PerfilUsuario.FISCAL_TECNICO])),
     use_case: EmitirAlvaraSanitarioUseCase = Depends(get_emitir_alvara_use_case),
 ):
     try:
@@ -320,7 +321,7 @@ async def obter_alvara(
     response_model=AlvaraSanitarioOutputDTO,
     summary="Validação Pública de Autenticidade do Alvará (Ponto de QR Code)",
 )
-@limiter.limit("30/minute")
+@limiter.limit(RATE_LIMIT_PUBLIC)
 async def validar_alvara_publico(
     request: Request,
     codigo_autenticidade: str,

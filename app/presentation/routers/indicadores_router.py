@@ -20,7 +20,11 @@ from app.application.indicadores.queries.gerar_relatorio_oficial import (
 from app.application.indicadores.queries.obter_dashboard_indicadores import (
     ObterDashboardIndicadoresQuery,
 )
-from app.domain.auth.entities import Usuario
+from app.core.constants import (
+    PRAZO_PADRAO_NOTIFICACAO_DIAS,
+    PRAZO_VALIDADE_ALVARA_DIAS,
+)
+from app.domain.auth.entities import PerfilUsuario, Usuario
 from app.infrastructure.database import get_db_session
 from app.infrastructure.repositories.indicadores_read_repository import (
     IndicadoresReadRepository,
@@ -144,7 +148,7 @@ async def obter_cobertura_por_risco(
     summary="Painel de Alertas de Vencimento de Notificações e Documentos",
 )
 async def obter_alertas_vencimento(
-    limite_dias: int = Query(30, ge=1, le=180),
+    limite_dias: int = Query(PRAZO_PADRAO_NOTIFICACAO_DIAS, ge=1, le=180),
     repo: IndicadoresReadRepository = Depends(get_indicadores_read_repo),
     _: Usuario = Depends(get_current_active_user),
 ):
@@ -165,7 +169,7 @@ async def obter_alertas_vencimento(
 async def gerar_relatorio_oficial(
     ano: Optional[int] = Query(None),
     repo: IndicadoresReadRepository = Depends(get_indicadores_read_repo),
-    _: Usuario = Depends(require_roles(["admin_master", "coordenador"])),
+    _: Usuario = Depends(require_roles([PerfilUsuario.ADMIN_MASTER, PerfilUsuario.COORDENADOR])),
 ):
     query = GerarRelatorioOficialExercicioQuery(repo)
     return await query.execute(ano_exercicio=ano)
@@ -179,7 +183,7 @@ async def gerar_relatorio_oficial(
 async def gerar_relatorio_sus_ano(
     ano: int,
     repo: IndicadoresReadRepository = Depends(get_indicadores_read_repo),
-    _: Usuario = Depends(require_roles(["admin_master", "coordenador"])),
+    _: Usuario = Depends(require_roles([PerfilUsuario.ADMIN_MASTER, PerfilUsuario.COORDENADOR])),
 ):
     query = GerarRelatorioOficialExercicioQuery(repo)
     return await query.execute(ano_exercicio=ano)
@@ -202,8 +206,8 @@ async def obter_metas_exercicio_endpoint(
             "meta_cobertura_risco_1": 100.0,
             "meta_cobertura_risco_2": 100.0,
             "meta_cobertura_risco_3": 100.0,
-            "dias_validade_padrao_alvara": 365,
-            "dias_prazo_padrao_notificacao": 30,
+            "dias_validade_padrao_alvara": PRAZO_VALIDADE_ALVARA_DIAS,
+            "dias_prazo_padrao_notificacao": PRAZO_PADRAO_NOTIFICACAO_DIAS,
         }
     return metas
 
