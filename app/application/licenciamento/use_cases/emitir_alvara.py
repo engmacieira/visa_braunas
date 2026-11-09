@@ -81,10 +81,12 @@ class EmitirAlvaraSanitarioUseCase:
         codigo_autenticidade_vo = CodigoAutenticidadeAlvara.gerar(exercicio=exercicio)
 
         # 4. Cálculo de validade (padrão de 365 dias para 12 meses)
+        from app.core.constants import DIAS_MES_COMERCIAL, PRAZO_VALIDADE_ALVARA_DIAS
+
         if input_dto.validade_meses == 12:
-            data_vencimento = hoje + timedelta(days=365)
+            data_vencimento = hoje + timedelta(days=PRAZO_VALIDADE_ALVARA_DIAS)
         else:
-            dias_validade = int(input_dto.validade_meses * 30.4167)
+            dias_validade = int(input_dto.validade_meses * DIAS_MES_COMERCIAL)
             data_vencimento = hoje + timedelta(days=dias_validade)
 
         # 5. Instanciar e salvar Alvará

@@ -6,6 +6,7 @@ from app.application.auth.use_cases.autenticar_usuario import (
     CredenciaisInvalidasException,
     UsuarioInativoException,
 )
+from app.core.constants import RATE_LIMIT_LOGIN
 from app.core.limiter import limiter
 from app.domain.auth.entities import Usuario
 from app.domain.auth.repositories import IAuditoriaRepository, IUsuarioRepository
@@ -27,7 +28,7 @@ router = APIRouter(prefix="/auth", tags=["Autenticação e Sessão"])
     summary="Autenticação do Servidor",
     description="Autentica o servidor com e-mail e senha, atualiza o último login, registra auditoria e emite token JWT.",
 )
-@limiter.limit("5/minute")
+@limiter.limit(RATE_LIMIT_LOGIN)
 async def login(
     request: Request,
     dto: LoginDTO,

@@ -13,8 +13,15 @@ MAGIC_BYTES_SIGNATURES = {
     "jpg": [b"\xff\xd8\xff"],
 }
 
+from app.core.constants import (
+    MAX_UPLOAD_SIZE_BYTES,
+    MAX_UPLOAD_SIZE_MB,
+    UPLOAD_CHUNK_SIZE_BYTES,
+    UPLOAD_MAGIC_BYTES_INSPECTION_BUFFER,
+)
+
 DEFAULT_ALLOWED_EXTENSIONS = ["pdf", "png", "jpg", "jpeg"]
-DEFAULT_MAX_SIZE_MB = 10
+DEFAULT_MAX_SIZE_MB = MAX_UPLOAD_SIZE_MB
 
 
 def _obter_extensao(filename: Optional[str]) -> str:
@@ -53,7 +60,7 @@ async def validate_uploaded_file(
         )
 
     # 1. Inspeção determinística dos magic bytes (primeiros 2048 bytes)
-    header = await file.read(2048)
+    header = await file.read(UPLOAD_MAGIC_BYTES_INSPECTION_BUFFER)
     if not header:
         await file.seek(0)
         raise HTTPException(
@@ -75,7 +82,7 @@ async def validate_uploaded_file(
     # O arquivo já teve até 2048 bytes lidos. Lemos o restante em chunks para medir o tamanho total.
     max_bytes = max_size_mb * 1024 * 1024
     total_size = len(header)
-    chunk_size = 1024 * 64  # 64 KB por chunk
+    chunk_size = UPLOAD_CHUNK_SIZE_BYTES
 
     while True:
         chunk = await file.read(chunk_size)

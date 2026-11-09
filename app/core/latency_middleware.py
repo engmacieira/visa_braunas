@@ -29,7 +29,9 @@ class LatencyMonitoringMiddleware(BaseHTTPMiddleware):
         latency_ms = execution_seconds * 1000.0
 
         # Injeta cabeçalho de resposta com formato padronizado de duas casas decimais
-        response.headers["X-Response-Time"] = f"{latency_ms:.2f}ms"
+        from app.core.constants import HEADER_RESPONSE_TIME
+
+        response.headers[HEADER_RESPONSE_TIME] = f"{latency_ms:.2f}ms"
 
         # Dispara log estruturado JSON se a execução for >= 1.0s (1000ms)
         if execution_seconds >= 1.0:

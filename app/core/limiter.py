@@ -21,13 +21,15 @@ def get_real_client_ip(request: Request) -> str:
     return "127.0.0.1"
 
 
+from app.core.constants import RATE_LIMIT_DEFAULT, RATE_LIMIT_RETRY_AFTER_SECONDS
+
+
 def _rate_limit_exceeded_custom_handler(request: Request, exc: RateLimitExceeded) -> JSONResponse:
     """
     Handler padronizado de RateLimitExceeded que retorna HTTP 429 Too Many Requests
     em JSON explicativo e com cabeçalho Retry-After.
     """
     # SlowAPI exc pode conter limite no formato exc.detail
-    retry_after = "60"
     return JSONResponse(
         status_code=429,
         content={
@@ -35,17 +37,17 @@ def _rate_limit_exceeded_custom_handler(request: Request, exc: RateLimitExceeded
             "detail": f"Limite de requisições excedido: {exc.detail}",
             "codigo": "TAXA_LIMITE_EXCEDIDA",
         },
-        headers={"Retry-After": retry_after},
+        headers={"Retry-After": RATE_LIMIT_RETRY_AFTER_SECONDS},
     )
 
 
-# Instância global do Limiter com fallback default de 100/minute
+# Instância global do Limiter com fallback default de RATE_LIMIT_DEFAULT (100/minute)
 # Nota: headers_enabled=False evita que o decorador do slowapi exija que o endpoint
 # retorne diretamente um Response ou declare o parâmetro response: Response quando
 # o FastAPI retorna um DTO pydantic serializado automaticamente pelo framework.
 # Os headers de rate limit em 429 continuam sendo injetados via custom handler (Retry-After).
 limiter = Limiter(
     key_func=get_real_client_ip,
-    default_limits=["100/minute"],
+    default_limits=[RATE_LIMIT_DEFAULT],
     headers_enabled=False,
 )

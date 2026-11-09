@@ -6,8 +6,19 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "VigiMinas"
+    APP_VERSION: str = "1.0.0"
+    APP_DESCRIPTION: str = (
+        "Backend oficial do Sistema VigiMinas - Vigilância Sanitária Municipal (DDD, FastAPI, SQLAlchemy 2.0)"
+    )
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
+
+    # Rota Base da API
+    API_V1_STR: str = "/api/v1"
+
+    # Dados Institucionais Padrão
+    MUNICIPIO_PADRAO: str = "Braúnas"
+    UF_PADRAO: str = "MG"
 
     # Dualidade de Drivers de Banco de Dados
     DATABASE_URL: str = (
