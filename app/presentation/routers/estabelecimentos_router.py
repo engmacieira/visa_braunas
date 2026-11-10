@@ -135,7 +135,7 @@ async def list_estabelecimentos(
     busca: Optional[str] = Query(None, description="Busca por razão social, nome fantasia, CNPJ/CPF ou inscrição municipal"),
     only_active: bool = Query(True, description="Exibir apenas registros ativos"),
     order_by: Optional[str] = Query(None, description="Campo para ordenação (ex: 'inscricao_municipal', 'razao_social', 'cnpj_cpf')"),
-    order_direction: Optional[str] = Query("asc", regex="^(asc|desc|ASC|DESC)$", description="Direção da ordenação: 'asc' ou 'desc'"),
+    order_direction: Optional[str] = Query("asc", pattern="^(asc|desc|ASC|DESC)$", description="Direção da ordenação: 'asc' ou 'desc'"),
     estabelecimento_repo: IEstabelecimentoRepository = Depends(get_estabelecimento_repository),
     _: Usuario = Depends(require_operacional),
 ) -> EstabelecimentoListResponseDTO:

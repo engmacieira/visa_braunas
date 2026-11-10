@@ -28,46 +28,26 @@ CTE_ESTABELECIMENTOS_RISCO = """
             e.situacao_alvara,
             e.numero_alvara,
             CASE 
-                -- 1. Prioriza CNAEs vinculados caso existam com Risco III / Alto
-                WHEN EXISTS (
-                    SELECT 1 FROM estabelecimento_cnaes ec
-                    JOIN cnaes c ON ec.cnae_id = c.id
-                    WHERE ec.estabelecimento_id = e.id 
-                      AND ec.is_active = TRUE AND ec.is_deleted = FALSE 
-                      AND c.is_deleted = FALSE
-                      AND (c.grau_risco_padrao::text IN ('Risco III', '3', 'RISCO_III', 'alto') OR c.grau_risco_padrao = 'Risco III')
-                ) THEN 'Risco III'
-                -- 2. Senão, se e.nivel_risco for Risco III / 3
+                -- 1. Prioriza CNAEs consolidados na view oficial caso existam com Risco III / Alto
+                WHEN v.risco_sanitario_preponderante::text IN ('Risco III', '3', 'RISCO_III', 'alto') THEN 'Risco III'
+                -- 2. Senão, se e.nivel_risco cadastrado for Risco III / 3
                 WHEN e.nivel_risco::text IN ('Risco III', '3', 'RISCO_III', 'alto') THEN 'Risco III'
 
-                -- 3. Prioriza CNAEs vinculados caso existam com Risco II / Médio
-                WHEN EXISTS (
-                    SELECT 1 FROM estabelecimento_cnaes ec
-                    JOIN cnaes c ON ec.cnae_id = c.id
-                    WHERE ec.estabelecimento_id = e.id 
-                      AND ec.is_active = TRUE AND ec.is_deleted = FALSE 
-                      AND c.is_deleted = FALSE
-                      AND (c.grau_risco_padrao::text IN ('Risco II', '2', 'RISCO_II', 'medio') OR c.grau_risco_padrao = 'Risco II')
-                ) THEN 'Risco II'
-                -- 4. Senão, se e.nivel_risco for Risco II / 2
+                -- 3. Prioriza CNAEs consolidados na view oficial caso existam com Risco II / Médio
+                WHEN v.risco_sanitario_preponderante::text IN ('Risco II', '2', 'RISCO_II', 'medio') THEN 'Risco II'
+                -- 4. Senão, se e.nivel_risco cadastrado for Risco II / 2
                 WHEN e.nivel_risco::text IN ('Risco II', '2', 'RISCO_II', 'medio') THEN 'Risco II'
 
-                -- 5. Prioriza CNAEs vinculados caso existam com Risco I / Baixo / Dispensado
-                WHEN EXISTS (
-                    SELECT 1 FROM estabelecimento_cnaes ec
-                    JOIN cnaes c ON ec.cnae_id = c.id
-                    WHERE ec.estabelecimento_id = e.id 
-                      AND ec.is_active = TRUE AND ec.is_deleted = FALSE 
-                      AND c.is_deleted = FALSE
-                      AND (c.grau_risco_padrao::text IN ('Risco I', '1', 'RISCO_I', 'baixo', 'Dispensado') OR c.grau_risco_padrao IN ('Risco I', 'Dispensado'))
-                ) THEN 'Risco I'
-                -- 6. Senão, se e.nivel_risco for Risco I / 1 / Dispensado
+                -- 5. Prioriza CNAEs consolidados na view oficial caso existam com Risco I / Baixo / Dispensado
+                WHEN v.risco_sanitario_preponderante::text IN ('Risco I', '1', 'RISCO_I', 'baixo', 'Dispensado') THEN 'Risco I'
+                -- 6. Senão, se e.nivel_risco cadastrado for Risco I / 1 / Dispensado
                 WHEN e.nivel_risco::text IN ('Risco I', '1', 'RISCO_I', 'baixo', 'Dispensado') THEN 'Risco I'
 
                 -- 7. Fallback seguro: Risco I (Baixo Risco)
                 ELSE 'Risco I'
             END AS grau_risco
         FROM estabelecimentos e
+        LEFT JOIN vw_estabelecimentos_risco_consolidado v ON e.id = v.estabelecimento_id
         WHERE e.situacao_estabelecimento = 'Ativo' AND e.is_deleted = FALSE
     )
 """
