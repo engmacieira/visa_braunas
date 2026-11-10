@@ -17,6 +17,73 @@ from app.infrastructure.models.fiscalizacao_models import InspecaoModel
 from app.infrastructure.models.licenciamento_models import AlvaraSanitarioModel
 
 
+CTE_ESTABELECIMENTOS_RISCO = """
+    WITH estab_com_risco AS (
+        SELECT 
+            e.id AS estabelecimento_id,
+            e.id,
+            e.cnpj_cpf,
+            e.razao_social,
+            e.nome_fantasia,
+            e.situacao_alvara,
+            e.numero_alvara,
+            CASE 
+                -- 1. Prioriza CNAEs vinculados caso existam com Risco III / Alto
+                WHEN EXISTS (
+                    SELECT 1 FROM estabelecimento_cnaes ec
+                    JOIN cnaes c ON ec.cnae_id = c.id
+                    WHERE ec.estabelecimento_id = e.id 
+                      AND ec.is_active = TRUE AND ec.is_deleted = FALSE 
+                      AND c.is_deleted = FALSE
+                      AND (c.grau_risco_padrao::text IN ('Risco III', '3', 'RISCO_III', 'alto') OR c.grau_risco_padrao = 'Risco III')
+                ) THEN 'Risco III'
+                -- 2. Senão, se e.nivel_risco for Risco III / 3
+                WHEN e.nivel_risco::text IN ('Risco III', '3', 'RISCO_III', 'alto') THEN 'Risco III'
+
+                -- 3. Prioriza CNAEs vinculados caso existam com Risco II / Médio
+                WHEN EXISTS (
+                    SELECT 1 FROM estabelecimento_cnaes ec
+                    JOIN cnaes c ON ec.cnae_id = c.id
+                    WHERE ec.estabelecimento_id = e.id 
+                      AND ec.is_active = TRUE AND ec.is_deleted = FALSE 
+                      AND c.is_deleted = FALSE
+                      AND (c.grau_risco_padrao::text IN ('Risco II', '2', 'RISCO_II', 'medio') OR c.grau_risco_padrao = 'Risco II')
+                ) THEN 'Risco II'
+                -- 4. Senão, se e.nivel_risco for Risco II / 2
+                WHEN e.nivel_risco::text IN ('Risco II', '2', 'RISCO_II', 'medio') THEN 'Risco II'
+
+                -- 5. Prioriza CNAEs vinculados caso existam com Risco I / Baixo / Dispensado
+                WHEN EXISTS (
+                    SELECT 1 FROM estabelecimento_cnaes ec
+                    JOIN cnaes c ON ec.cnae_id = c.id
+                    WHERE ec.estabelecimento_id = e.id 
+                      AND ec.is_active = TRUE AND ec.is_deleted = FALSE 
+                      AND c.is_deleted = FALSE
+                      AND (c.grau_risco_padrao::text IN ('Risco I', '1', 'RISCO_I', 'baixo', 'Dispensado') OR c.grau_risco_padrao IN ('Risco I', 'Dispensado'))
+                ) THEN 'Risco I'
+                -- 6. Senão, se e.nivel_risco for Risco I / 1 / Dispensado
+                WHEN e.nivel_risco::text IN ('Risco I', '1', 'RISCO_I', 'baixo', 'Dispensado') THEN 'Risco I'
+
+                -- 7. Fallback seguro: Risco I (Baixo Risco)
+                ELSE 'Risco I'
+            END AS grau_risco
+        FROM estabelecimentos e
+        WHERE e.situacao_estabelecimento = 'Ativo' AND e.is_deleted = FALSE
+    )
+"""
+
+
+def normalizar_grau_risco(grau: Any) -> str:
+    g = str(grau).strip().lower()
+    if g in ("3", "risco_3", "risco-3", "risco 3", "risco iii", "alto"):
+        return "Risco III"
+    if g in ("2", "risco_2", "risco-2", "risco 2", "risco ii", "medio"):
+        return "Risco II"
+    if g in ("1", "risco_1", "risco-1", "risco 1", "risco i", "baixo", "dispensado", "dispensados"):
+        return "Risco I"
+    return "Risco I"
+
+
 class IndicadoresReadRepository(IIndicadoresReadRepository):
     def __init__(self, session: AsyncSession):
         self.session = session
@@ -102,18 +169,17 @@ class IndicadoresReadRepository(IIndicadoresReadRepository):
 
     async def obter_cobertura_risco_consolidada(self, ano: int) -> Dict[str, Any]:
         """
-        Consulta a view vw_estabelecimentos_risco_consolidado cruzando com inspeções e alvarás
-        para calcular os universos e coberturas dos Indicadores 12 (Risco III), 13 (Risco II) e 14 (Risco I).
+        Calcula os universos e coberturas dos Indicadores por grau de risco (Risco III, Risco II e Risco I),
+        utilizando a apuração canônica sem perdas por ausência de vínculos.
         """
-        # Contagem de estabelecimentos ativos por grau de risco preponderante
-        stmt_estab = text("""
+        # Contagem de estabelecimentos ativos por grau de risco
+        stmt_estab = text(f"""
+            {CTE_ESTABELECIMENTOS_RISCO}
             SELECT 
-                v.risco_sanitario_preponderante AS grau_risco_preponderante,
-                COUNT(v.estabelecimento_id) AS total
-            FROM vw_estabelecimentos_risco_consolidado v
-            JOIN estabelecimentos e ON v.estabelecimento_id = e.id
-            WHERE e.situacao_estabelecimento = 'Ativo' AND e.is_deleted = FALSE
-            GROUP BY v.risco_sanitario_preponderante
+                grau_risco AS grau_risco_preponderante,
+                COUNT(estabelecimento_id) AS total
+            FROM estab_com_risco
+            GROUP BY grau_risco
         """)
         res_estab = await self.session.execute(stmt_estab)
         estab_por_risco = {r["grau_risco_preponderante"]: r["total"] for r in res_estab.mappings().all()}
@@ -121,20 +187,17 @@ class IndicadoresReadRepository(IIndicadoresReadRepository):
         total_ativos = sum(estab_por_risco.values())
 
         # Estabelecimentos fiscalizados / cobertos no exercício anual corrente
-        # Risco III: Inspecionados no exercício (inspeção concluída no ano)
-        stmt_cobertura = text("""
+        stmt_cobertura = text(f"""
+            {CTE_ESTABELECIMENTOS_RISCO}
             SELECT 
-                v.risco_sanitario_preponderante AS grau_risco_preponderante,
-                COUNT(DISTINCT v.estabelecimento_id) AS total_fiscalizados
-            FROM vw_estabelecimentos_risco_consolidado v
-            JOIN estabelecimentos e ON v.estabelecimento_id = e.id
-            JOIN inspecoes i ON v.estabelecimento_id = i.estabelecimento_id
-            WHERE e.situacao_estabelecimento = 'Ativo'
-              AND e.is_deleted = FALSE
-              AND i.status = 'concluida'
+                er.grau_risco AS grau_risco_preponderante,
+                COUNT(DISTINCT er.estabelecimento_id) AS total_fiscalizados
+            FROM estab_com_risco er
+            JOIN inspecoes i ON er.estabelecimento_id = i.estabelecimento_id
+            WHERE i.status::text IN ('concluida', 'CONCLUIDA', 'concluido', 'realizada')
               AND EXTRACT(YEAR FROM i.data_inicio) = :ano
               AND i.is_deleted = FALSE
-            GROUP BY v.risco_sanitario_preponderante
+            GROUP BY er.grau_risco
         """)
         res_cob = await self.session.execute(stmt_cobertura, {"ano": ano})
         fiscalizados_por_risco = {r["grau_risco_preponderante"]: r["total_fiscalizados"] for r in res_cob.mappings().all()}
@@ -184,41 +247,40 @@ class IndicadoresReadRepository(IIndicadoresReadRepository):
         grau_risco: str,
         apenas_nao_fiscalizados: bool = False,
     ) -> List[Dict[str, Any]]:
-        base_query = """
+        grau_alvo = normalizar_grau_risco(grau_risco)
+        base_query = f"""
+            {CTE_ESTABELECIMENTOS_RISCO}
             SELECT 
-                e.id,
-                e.cnpj_cpf,
-                e.razao_social,
-                e.nome_fantasia,
-                v.risco_sanitario_preponderante AS grau_risco,
-                e.situacao_alvara,
-                e.numero_alvara,
+                er.id,
+                er.cnpj_cpf,
+                er.razao_social,
+                er.nome_fantasia,
+                er.grau_risco,
+                er.situacao_alvara,
+                er.numero_alvara,
                 CASE WHEN ultima_insp.id IS NOT NULL THEN TRUE ELSE FALSE END AS fiscalizado_no_exercicio,
                 TO_CHAR(ultima_insp.data_inicio, 'YYYY-MM-DD') AS data_ultima_inspecao,
-                ultima_insp.resultado AS resultado_ultima_inspecao
-            FROM estabelecimentos e
-            JOIN vw_estabelecimentos_risco_consolidado v ON e.id = v.estabelecimento_id
+                ultima_insp.resultado::text AS resultado_ultima_inspecao
+            FROM estab_com_risco er
             LEFT JOIN LATERAL (
                 SELECT i.id, i.data_inicio, i.resultado
                 FROM inspecoes i
-                WHERE i.estabelecimento_id = e.id
-                  AND i.status = 'concluida'
+                WHERE i.estabelecimento_id = er.id
+                  AND i.status::text IN ('concluida', 'CONCLUIDA', 'concluido', 'realizada')
                   AND EXTRACT(YEAR FROM i.data_inicio) = :ano
                   AND i.is_deleted = FALSE
                 ORDER BY i.data_inicio DESC
                 LIMIT 1
             ) ultima_insp ON TRUE
-            WHERE e.situacao_estabelecimento = 'Ativo'
-              AND v.risco_sanitario_preponderante = :grau_risco
+            WHERE er.grau_risco = :grau_risco
               AND (:apenas_nao_fiscalizados = FALSE OR ultima_insp.id IS NULL)
-              AND e.is_deleted = FALSE
-            ORDER BY e.razao_social ASC
+            ORDER BY er.razao_social ASC
         """
         res = await self.session.execute(
             text(base_query),
             {
                 "ano": ano,
-                "grau_risco": grau_risco,
+                "grau_risco": grau_alvo,
                 "apenas_nao_fiscalizados": apenas_nao_fiscalizados,
             },
         )
@@ -311,33 +373,30 @@ class IndicadoresReadRepository(IIndicadoresReadRepository):
         conforme as fichas técnicas pactuadas do Estado de Minas Gerais (SES/MG) para Braúnas/MG.
         """
         # 1. Total de estabelecimentos ativos e distribuição por risco
-        stmt_estab = text("""
+        stmt_estab = text(f"""
+            {CTE_ESTABELECIMENTOS_RISCO}
             SELECT 
-                COALESCE(v.risco_sanitario_preponderante, 'Risco I') AS grau_risco,
-                COUNT(v.estabelecimento_id) AS total
-            FROM vw_estabelecimentos_risco_consolidado v
-            JOIN estabelecimentos e ON v.estabelecimento_id = e.id
-            WHERE e.situacao_estabelecimento = 'Ativo' AND e.is_deleted = FALSE
-            GROUP BY v.risco_sanitario_preponderante
+                grau_risco,
+                COUNT(estabelecimento_id) AS total
+            FROM estab_com_risco
+            GROUP BY grau_risco
         """)
         res_estab = await self.session.execute(stmt_estab)
         estab_por_risco = {r["grau_risco"]: r["total"] for r in res_estab.mappings().all()}
         total_ativos = sum(estab_por_risco.values())
 
         # 2. Estabelecimentos fiscalizados no ano por grau de risco
-        stmt_fisc = text("""
+        stmt_fisc = text(f"""
+            {CTE_ESTABELECIMENTOS_RISCO}
             SELECT 
-                COALESCE(v.risco_sanitario_preponderante, 'Risco I') AS grau_risco,
-                COUNT(DISTINCT v.estabelecimento_id) AS total_fiscalizados
-            FROM vw_estabelecimentos_risco_consolidado v
-            JOIN estabelecimentos e ON v.estabelecimento_id = e.id
-            JOIN inspecoes i ON v.estabelecimento_id = i.estabelecimento_id
-            WHERE e.situacao_estabelecimento = 'Ativo'
-              AND e.is_deleted = FALSE
-              AND i.status = 'concluida'
+                er.grau_risco,
+                COUNT(DISTINCT er.estabelecimento_id) AS total_fiscalizados
+            FROM estab_com_risco er
+            JOIN inspecoes i ON er.estabelecimento_id = i.estabelecimento_id
+            WHERE i.status::text IN ('concluida', 'CONCLUIDA', 'concluido', 'realizada')
               AND EXTRACT(YEAR FROM i.data_inicio) = :ano
               AND i.is_deleted = FALSE
-            GROUP BY v.risco_sanitario_preponderante
+            GROUP BY er.grau_risco
         """)
         res_fisc = await self.session.execute(stmt_fisc, {"ano": ano})
         fisc_por_risco = {r["grau_risco"]: r["total_fiscalizados"] for r in res_fisc.mappings().all()}
@@ -594,23 +653,24 @@ class IndicadoresReadRepository(IIndicadoresReadRepository):
         """
         if indicador_numero == 11:
             # Estabelecimentos com ações VAPT no ano ou em histórico
-            sql = """
+            sql = f"""
+                {CTE_ESTABELECIMENTOS_RISCO}
                 SELECT DISTINCT
                     e.id,
                     e.cnpj_cpf,
                     e.razao_social,
                     e.nome_fantasia,
-                    v.risco_sanitario_preponderante AS grau_risco,
+                    COALESCE(er.grau_risco, 'Risco I') AS grau_risco,
                     e.situacao_alvara,
                     e.numero_alvara,
                     TRUE AS fiscalizado_no_exercicio,
                     TO_CHAR(i.data_inicio, 'YYYY-MM-DD') AS data_ultima_inspecao,
-                    i.resultado AS resultado_ultima_inspecao
+                    i.resultado::text AS resultado_ultima_inspecao
                 FROM estabelecimentos e
                 JOIN inspecoes i ON e.id = i.estabelecimento_id
-                LEFT JOIN vw_estabelecimentos_risco_consolidado v ON e.id = v.estabelecimento_id
-                WHERE i.motivo = 'vapt_trabalhador'
-                  AND i.status = 'concluida'
+                LEFT JOIN estab_com_risco er ON e.id = er.id
+                WHERE i.motivo::text = 'vapt_trabalhador'
+                  AND i.status::text IN ('concluida', 'CONCLUIDA', 'concluido', 'realizada')
                   AND EXTRACT(YEAR FROM i.data_inicio) = :ano
                   AND i.is_deleted = FALSE
                   AND e.is_deleted = FALSE
@@ -622,33 +682,31 @@ class IndicadoresReadRepository(IIndicadoresReadRepository):
 
         elif indicador_numero == 12:
             # Base geral de estabelecimentos ativos (Cadastro Municipal)
-            sql = """
+            sql = f"""
+                {CTE_ESTABELECIMENTOS_RISCO}
                 SELECT 
-                    e.id,
-                    e.cnpj_cpf,
-                    e.razao_social,
-                    e.nome_fantasia,
-                    COALESCE(v.risco_sanitario_preponderante, 'Risco I') AS grau_risco,
-                    e.situacao_alvara,
-                    e.numero_alvara,
+                    er.id,
+                    er.cnpj_cpf,
+                    er.razao_social,
+                    er.nome_fantasia,
+                    er.grau_risco,
+                    er.situacao_alvara,
+                    er.numero_alvara,
                     CASE WHEN ultima_insp.id IS NOT NULL THEN TRUE ELSE FALSE END AS fiscalizado_no_exercicio,
                     TO_CHAR(ultima_insp.data_inicio, 'YYYY-MM-DD') AS data_ultima_inspecao,
-                    ultima_insp.resultado AS resultado_ultima_inspecao
-                FROM estabelecimentos e
-                LEFT JOIN vw_estabelecimentos_risco_consolidado v ON e.id = v.estabelecimento_id
+                    ultima_insp.resultado::text AS resultado_ultima_inspecao
+                FROM estab_com_risco er
                 LEFT JOIN LATERAL (
                     SELECT i.id, i.data_inicio, i.resultado
                     FROM inspecoes i
-                    WHERE i.estabelecimento_id = e.id
-                      AND i.status = 'concluida'
+                    WHERE i.estabelecimento_id = er.id
+                      AND i.status::text IN ('concluida', 'CONCLUIDA', 'concluido', 'realizada')
                       AND EXTRACT(YEAR FROM i.data_inicio) = :ano
                       AND i.is_deleted = FALSE
                     ORDER BY i.data_inicio DESC
                     LIMIT 1
                 ) ultima_insp ON TRUE
-                WHERE e.situacao_estabelecimento = 'Ativo'
-                  AND e.is_deleted = FALSE
-                ORDER BY e.razao_social ASC
+                ORDER BY er.razao_social ASC
             """
             res = await self.session.execute(text(sql), {"ano": ano})
             return [dict(r) for r in res.mappings().all()]

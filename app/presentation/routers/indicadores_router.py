@@ -128,15 +128,13 @@ async def obter_cobertura_por_risco(
     repo: IndicadoresReadRepository = Depends(get_indicadores_read_repo),
     _: Usuario = Depends(get_current_active_user),
 ):
-    grau_normalizado = grau_risco.strip()
-    if grau_normalizado.lower() in ["risco_3", "risco-3", "risco 3", "risco iii", "3"]:
+    grau_normalizado = grau_risco.strip().lower()
+    if grau_normalizado in ["risco_3", "risco-3", "risco 3", "risco iii", "3", "alto"]:
         grau_alvo = "Risco III"
-    elif grau_normalizado.lower() in ["risco_2", "risco-2", "risco 2", "risco ii", "2"]:
+    elif grau_normalizado in ["risco_2", "risco-2", "risco 2", "risco ii", "2", "medio"]:
         grau_alvo = "Risco II"
-    elif grau_normalizado.lower() in ["risco_1", "risco-1", "risco 1", "risco i", "1"]:
+    elif grau_normalizado in ["risco_1", "risco-1", "risco 1", "risco i", "1", "baixo", "dispensado", "dispensados"]:
         grau_alvo = "Risco I"
-    elif grau_normalizado.lower() in ["dispensado", "dispensados"]:
-        grau_alvo = "Dispensado"
     else:
         grau_alvo = grau_risco
 
@@ -171,6 +169,38 @@ async def obter_cobertura_por_risco(
         status_cobertura=status_cob,
         estabelecimentos=estabelecimentos,
     )
+
+
+@router.get(
+    "/{codigo}/estabelecimentos",
+    response_model=IndicadorUniversalDetalheDTO,
+    summary="Detalhamento do Indicador com Lista de Estabelecimentos (por código ou número)",
+)
+async def obter_estabelecimentos_por_codigo(
+    codigo: str,
+    ano: Optional[int] = Query(None, description="Ano civil de exercício"),
+    risco: Optional[str] = Query(None, description="Filtro opcional de risco (1, 2, 3)"),
+    repo: IndicadoresReadRepository = Depends(get_indicadores_read_repo),
+    user: Usuario = Depends(get_current_active_user),
+):
+    cod_clean = codigo.strip().upper().replace("IND-", "").replace("IND", "")
+    try:
+        numero = int(cod_clean)
+    except ValueError:
+        if risco:
+            r_norm = risco.strip().lower()
+            if r_norm in ["1", "risco_1", "risco i", "baixo"]:
+                numero = 13
+            elif r_norm in ["2", "risco_2", "risco ii", "medio"]:
+                numero = 14
+            elif r_norm in ["3", "risco_3", "risco iii", "alto"]:
+                numero = 15
+            else:
+                numero = 13
+        else:
+            numero = 13
+
+    return await obter_detalhes_indicador(indicador_numero=numero, ano=ano, repo=repo, _=user)
 
 
 @router.get(

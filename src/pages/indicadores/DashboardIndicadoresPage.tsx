@@ -334,9 +334,15 @@ export const DashboardIndicadoresPage: React.FC = () => {
                 indicador={ind}
                 isSelected={indicadorSelecionadoNumero === ind.numero}
                 onClick={() => {
-                  setIndicadorSelecionadoNumero((prev) =>
-                    prev === ind.numero ? null : ind.numero
-                  );
+                  setIndicadorSelecionadoNumero((prev) => {
+                    const novo = prev === ind.numero ? null : ind.numero;
+                    if (novo !== null) {
+                      setTimeout(() => {
+                        document.getElementById("painel-drill-down")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                      }, 100);
+                    }
+                    return novo;
+                  });
                 }}
               />
             ))}

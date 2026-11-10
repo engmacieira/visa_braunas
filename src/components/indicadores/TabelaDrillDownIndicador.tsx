@@ -17,6 +17,7 @@ import {
   X,
 } from "lucide-react";
 import { ROUTES } from "../../config/routes.config";
+import { RiscoBadge } from "../estabelecimentos/RiscoBadge";
 import { IndicadorUniversalDetalheItem, ItemEstabelecimentoCobertura } from "../../types/indicadores";
 
 interface TabelaDrillDownIndicadorProps {
@@ -206,8 +207,8 @@ export const TabelaDrillDownIndicador: React.FC<TabelaDrillDownIndicadorProps> =
                   </td>
 
                   {/* Grau de Risco */}
-                  <td className="py-3 px-4 text-slate-600 dark:text-slate-300">
-                    {item.grau_risco}
+                  <td className="py-3 px-4 whitespace-nowrap">
+                    <RiscoBadge risco={item.grau_risco} />
                   </td>
 
                   {/* Alvará */}
