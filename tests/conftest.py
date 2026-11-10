@@ -2,11 +2,20 @@
 Configuração global do Pytest e fixtures compartilhadas.
 Sprint QA-04 - VigiMinas (Braúnas/MG).
 
-Isolamento transacional assíncrono com PostgreSQL, client HTTPX ASGITransport,
-fixtures de tokens JWT por perfil e carga mínima de contexto institucional/exercício.
+Isolamento estrito com Docker Compose (PostgreSQL 16), execução automática de migrations
+Alembic, bloqueio contra banco de produção, cliente HTTPX ASGITransport,
+fixtures de tokens JWT por perfil e carga de contexto institucional/exercício.
 """
 
+import os
+import subprocess
+import sys
+import time
+from pathlib import Path
 from typing import AsyncGenerator, Dict
+
+from dotenv import load_dotenv
+import psycopg2
 import pytest
 import pytest_asyncio
 import httpx
@@ -19,7 +28,33 @@ from sqlalchemy.ext.asyncio import (
 )
 from sqlalchemy.pool import NullPool
 
+# ==============================================================================
+# 1. CARREGAMENTO ESTRITO DO AMBIENTE DE TESTES (.env.test)
+# ==============================================================================
+ROOT_DIR = Path(__file__).resolve().parent.parent
+
+test_env_path = ROOT_DIR / ".env.test"
+if test_env_path.exists():
+    load_dotenv(dotenv_path=test_env_path, override=True)
+
+# Defaults seguros garantindo porta 5436 e ambiente de teste isolado
+os.environ.setdefault("ENVIRONMENT", "test")
+os.environ.setdefault(
+    "DATABASE_URL",
+    "postgresql+asyncpg://vigiminas_test_user:vigiminas_test_password@localhost:5436/vigiminas_test_db",
+)
+os.environ.setdefault(
+    "DATABASE_URL_SYNC",
+    "postgresql+psycopg2://vigiminas_test_user:vigiminas_test_password@localhost:5436/vigiminas_test_db",
+)
+
+# Sincroniza e força configurações do singleton Settings
 from app.core.config import settings
+
+settings.DATABASE_URL = os.environ["DATABASE_URL"]
+settings.DATABASE_URL_SYNC = os.environ["DATABASE_URL_SYNC"]
+settings.ENVIRONMENT = os.environ.get("ENVIRONMENT", "test")
+
 from app.core.security import create_access_token
 from app.infrastructure.database import get_db_session
 from app.infrastructure.models import (
@@ -37,6 +72,110 @@ from tests.fixtures.seed_fixtures import (  # noqa: F401
 )
 
 
+# ==============================================================================
+# 2. GUARDA DE SEGURANÇA CONTRA PRODUÇÃO (PRODUCTION SAFETY GUARD)
+# ==============================================================================
+def pytest_configure(config):
+    """
+    Guarda de segurança em tempo de execução:
+    Bloqueia categoricamente a execução da suíte de testes caso a URL do banco
+    aponte para servidores externos, nuvem (Supabase, AWS, etc.) ou produção.
+    """
+    db_url = os.environ.get("DATABASE_URL", "").lower()
+    db_sync = os.environ.get("DATABASE_URL_SYNC", "").lower()
+    env = os.environ.get("ENVIRONMENT", "").lower()
+
+    dangerous_indicators = ["supabase", "aws", "rds", "pooler", "production"]
+    for indicator in dangerous_indicators:
+        if indicator in db_url or indicator in db_sync or env in ("production", "prod"):
+            raise RuntimeError(
+                f"\n{'='*75}\n"
+                f"[BLOQUEIO DE SEGURANÇA CRÍTICO - TESTES ISOLADOS]\n"
+                f"A execução dos testes foi CANCELADA para proteger a integridade dos dados!\n"
+                f"Detectada referência ao ambiente '{indicator.upper()}' na conexão:\n"
+                f"  DATABASE_URL: {os.environ.get('DATABASE_URL')}\n"
+                f"  ENVIRONMENT:  {env}\n"
+                f"Os testes devem rodar exclusivamente no container Docker local (porta 5436).\n"
+                f"{'='*75}\n"
+            )
+
+
+# ==============================================================================
+# 3. ORQUESTRAÇÃO AUTOMÁTICA DO DOCKER POSTGRESQL E MIGRATIONS ALEMBIC
+# ==============================================================================
+def _is_postgres_ready(dsn: str) -> bool:
+    """Tenta estabelecer uma conexão SQL real para validar que o Postgres concluiu o startup."""
+    try:
+        conn = psycopg2.connect(dsn, connect_timeout=1)
+        conn.close()
+        return True
+    except Exception:
+        return False
+
+
+def _ensure_docker_postgres_running():
+    """
+    Garante que o container Docker 'vigiminas_db_test' esteja em execução e pronto para queries.
+    Caso não esteja respondendo, sobe o serviço via Docker Compose e aguarda a autenticação.
+    """
+    sync_dsn = os.environ["DATABASE_URL_SYNC"].replace("postgresql+psycopg2://", "postgresql://")
+
+    if not _is_postgres_ready(sync_dsn):
+        compose_file = ROOT_DIR / "docker-compose.test.yml"
+        print(f"\n[VigiMinas Test] Subindo banco de testes no Docker ({compose_file.name})...")
+        cmd = ["docker", "compose", "-f", str(compose_file), "up", "-d", "test_db"]
+        try:
+            subprocess.run(cmd, cwd=str(ROOT_DIR), capture_output=True, text=True, check=True)
+        except FileNotFoundError:
+            raise RuntimeError(
+                "O comando 'docker' não foi encontrado no PATH. Certifique-se de que o Docker Desktop está instalado."
+            )
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError(
+                f"Falha ao iniciar o container Docker de testes: {e.stderr or e.stdout}\n"
+                "Verifique se o Docker Desktop está aberto e em execução."
+            )
+
+        # Polling real com psycopg2 até o Postgres aceitar conexões com sucesso
+        max_wait_seconds = 30
+        start_time = time.time()
+        while time.time() - start_time < max_wait_seconds:
+            if _is_postgres_ready(sync_dsn):
+                break
+            time.sleep(1)
+        else:
+            raise TimeoutError(
+                f"O container PostgreSQL de testes na porta 5436 não aceitou conexões após {max_wait_seconds}s."
+            )
+
+
+def _apply_alembic_migrations():
+    """Aplica todas as migrações do Alembic (upgrade head) no banco isolado de teste."""
+    from alembic import command
+    from alembic.config import Config
+
+    alembic_ini = ROOT_DIR / "alembic.ini"
+    alembic_cfg = Config(str(alembic_ini))
+    alembic_cfg.set_main_option("sqlalchemy.url", os.environ["DATABASE_URL_SYNC"])
+    command.upgrade(alembic_cfg, "head")
+
+
+@pytest.fixture(scope="session", autouse=True)
+def session_test_database_orchestration():
+    """
+    Fixture Pytest com escopo de sessão e autouse=True:
+    1. Garante container Docker de teste ativo;
+    2. Executa as migrations do Alembic no banco isolado;
+    3. Permite execução imediata e segura de qualquer teste.
+    """
+    _ensure_docker_postgres_running()
+    _apply_alembic_migrations()
+    yield
+
+
+# ==============================================================================
+# 4. FIXTURES DE SESSÃO TRANSACIONAL E CLIENTE HTTP
+# ==============================================================================
 @pytest_asyncio.fixture(scope="function")
 async def async_db_session() -> AsyncGenerator[AsyncSession, None]:
     """

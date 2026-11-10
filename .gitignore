@@ -6,6 +6,7 @@ coverage/
 *.log
 .env*
 !.env.example
+!.env.test
 .venv
 # Byte-compiled / cache files
 __pycache__/
@@ -15,5 +16,10 @@ minhapasta/
 backup-firestore-local/
 etl/
 backup-firestore-local.zip
+backup_supabase.bat
+backup_supabase.ps1
 
 .coverage
+backups/
+*.dump
+

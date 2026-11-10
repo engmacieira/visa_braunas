@@ -1,0 +1,24 @@
+services:
+  test_db:
+    image: postgres:16-alpine
+    container_name: vigiminas_db_test
+    restart: "no"
+    environment:
+      POSTGRES_USER: vigiminas_test_user
+      POSTGRES_PASSWORD: vigiminas_test_password
+      POSTGRES_DB: vigiminas_test_db
+      TZ: America/Sao_Paulo
+      PGTZ: America/Sao_Paulo
+    command: ["postgres", "-c", "timezone=America/Sao_Paulo"]
+    ports:
+      - "5436:5432"
+    volumes:
+      - ./docker/init-db.sql:/docker-entrypoint-initdb.d/01-init-pgcrypto.sql:ro
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vigiminas_test_user -d vigiminas_test_db"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+      start_period: 2s

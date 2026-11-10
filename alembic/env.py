@@ -18,7 +18,7 @@ import app.infrastructure.models  # noqa: F401 - Registra todas as tabelas na Ba
 config = context.config
 
 if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
+    fileConfig(config.config_file_name, disable_existing_loggers=False)
 
 # Vinculação dos metadados declarativos para autogenerate
 target_metadata = Base.metadata
