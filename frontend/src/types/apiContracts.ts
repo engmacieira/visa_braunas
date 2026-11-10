@@ -374,8 +374,44 @@ export interface IndicadorItemDTO {
   progresso: ProgressoMetaDTO;
 }
 
+export interface IndicadorUniversalDetalheDTO {
+  codigo: string;
+  numero: number;
+  titulo: string;
+  descricao: string;
+  unidade: string;
+  peso_financeiro_percentual: number;
+  numerador: number;
+  denominador: number;
+  meta_pactuada: number;
+  meta_percentual: number;
+  percentual_alcancado: number;
+  atingiu_meta: boolean;
+  status: "Atingida" | "Em Andamento" | "Crítica" | string;
+  pontuacao_alcancada: number;
+  grau_risco_rotulo?: string | null;
+  estabelecimentos?: ItemEstabelecimentoCoberturaDTO[];
+  progresso: ProgressoMetaDTO;
+}
+
+export interface BlocoUniversalResumoDTO {
+  peso_total_percentual: number;
+  pontuacao_total_alcancada: number;
+  percentual_atingido_bloco: number;
+  status_bloco: "Excelente" | "Regular" | "Crítico" | string;
+  total_indicadores_atingidos: number;
+}
+
 export interface DashboardMetasConsolidadoDTO {
   ano_exercicio: number;
+  bloco_universal?: BlocoUniversalResumoDTO;
+  indicadores?: IndicadorUniversalDetalheDTO[];
+  indicador_11?: IndicadorUniversalDetalheDTO;
+  indicador_12?: IndicadorUniversalDetalheDTO;
+  indicador_13?: IndicadorUniversalDetalheDTO;
+  indicador_14?: IndicadorUniversalDetalheDTO;
+  indicador_15?: IndicadorUniversalDetalheDTO;
+  // Retrocompatibilidade
   indicador_11_vapt: IndicadorItemDTO;
   indicador_12_risco_3: IndicadorItemDTO;
   indicador_13_risco_2: IndicadorItemDTO;

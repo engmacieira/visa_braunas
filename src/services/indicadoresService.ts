@@ -8,6 +8,7 @@ import {
   AlertasVencimentoResponse,
   DashboardIndicadoresResponse,
   EstatisticasRiscoDTO,
+  IndicadorUniversalDetalheItem,
   MetasExercicioDTO,
   RelatorioIndicador11DetalhadoResponse,
   RelatorioSusDTO,
@@ -94,6 +95,19 @@ export const indicadoresService = {
         ano,
         apenas_pendentes: apenasPendentes,
       },
+    });
+    return res.data;
+  },
+
+  /**
+   * Obtém o detalhamento de um Indicador Universal (11 a 15) com a lista de estabelecimentos vinculados
+   */
+  async obterDetalhesIndicador(
+    indicadorNumero: number,
+    ano?: number
+  ): Promise<IndicadorUniversalDetalheItem> {
+    const res = await apiClient.get<IndicadorUniversalDetalheItem>(`/indicadores/detalhes/${indicadorNumero}`, {
+      params: ano ? { ano } : undefined,
     });
     return res.data;
   },

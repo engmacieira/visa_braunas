@@ -56,3 +56,27 @@ class IIndicadoresReadRepository(ABC):
         emissão do Relatório Anual de Gestão da VISA de Braúnas/MG.
         """
         pass
+
+    @abstractmethod
+    async def obter_resumo_indicadores_universais(self, ano: int) -> Dict[str, Any]:
+        """
+        Apuração analítica dos 5 Indicadores Universais oficiais do SES/MG para Braúnas/MG:
+        - IND-11: VAPT Saúde do Trabalhador (meta: 2 ações)
+        - IND-12: Atualização do Cadastro Municipal (meta: 1 remessa/validação)
+        - IND-13: Inspeções em Risco I - Baixo Risco (meta: >= 15%)
+        - IND-14: Inspeções em Risco II - Médio Risco (meta: >= 90%)
+        - IND-15: Inspeções em Risco III - Alto Risco (meta: 100%)
+        """
+        pass
+
+    @abstractmethod
+    async def listar_estabelecimentos_por_indicador(
+        self,
+        indicador_numero: int,
+        ano: int,
+    ) -> List[Dict[str, Any]]:
+        """
+        Retorna o universo detalhado de estabelecimentos vinculado a um dos indicadores (11 a 15)
+        com informações de cumprimento fiscal no ano civil.
+        """
+        pass

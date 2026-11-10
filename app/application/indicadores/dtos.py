@@ -24,10 +24,62 @@ class IndicadorItemDTO(BaseModel):
     progresso: ProgressoMetaDTO
 
 
+class ItemEstabelecimentoCoberturaDTO(BaseModel):
+    id: uuid.UUID
+    cnpj_cpf: str
+    razao_social: str
+    nome_fantasia: Optional[str] = None
+    grau_risco: str
+    fiscalizado_no_exercicio: bool
+    data_ultima_inspecao: Optional[str] = None
+    resultado_ultima_inspecao: Optional[str] = None
+    situacao_alvara: str
+    numero_alvara: Optional[str] = None
+
+
+class IndicadorUniversalDetalheDTO(BaseModel):
+    codigo: str = Field(..., description="Ex: 'IND-11', 'IND-12', 'IND-13', 'IND-14', 'IND-15'")
+    numero: int = Field(..., description="11, 12, 13, 14, 15")
+    titulo: str
+    descricao: str
+    unidade: str = Field(default="%", description="% ou inspeções ou remessas")
+    peso_financeiro_percentual: float = Field(default=5.0, description="Peso oficial de 5% no Bloco Universal")
+    numerador: float = Field(..., description="Quantidade apurada ou realizada no exercício")
+    denominador: float = Field(..., description="Universo total de estabelecimentos ou meta quantitativa")
+    meta_pactuada: float = Field(..., description="Meta nominal pactuada (ex: 2 para VAPT, 1 para Cadastro)")
+    meta_percentual: float = Field(..., description="Meta percentual oficial (ex: 15% para R1, 90% para R2, 100% para R3)")
+    percentual_alcancado: float = Field(..., description="Percentual real atingido em relação à meta")
+    atingiu_meta: bool = Field(..., description="Verdadeiro se cumpriu o limiar mínimo oficial")
+    status: str = Field(..., description="Atingida, Em Andamento, Crítica")
+    pontuacao_alcancada: float = Field(..., description="Pontos auferidos no repasse financeiro (0.0 a 5.0)")
+    grau_risco_rotulo: Optional[str] = Field(default=None, description="Rótulo da categoria regulatória")
+    estabelecimentos: List[ItemEstabelecimentoCoberturaDTO] = Field(default_factory=list)
+    progresso: ProgressoMetaDTO
+
+
+class BlocoUniversalResumoDTO(BaseModel):
+    peso_total_percentual: float = Field(default=25.0, description="Soma dos pesos dos 5 indicadores (5 x 5% = 25%)")
+    pontuacao_total_alcancada: float = Field(..., description="Soma ponderada dos pontos obtidos (0.0 a 25.0)")
+    percentual_atingido_bloco: float = Field(..., description="Percentual geral de aproveitamento do Bloco Universal")
+    status_bloco: str = Field(..., description="Excelente, Regular, Crítico")
+    total_indicadores_atingidos: int = Field(..., description="Quantidade de indicadores cumpridos (0 a 5)")
+
+
 class DashboardMetasConsolidadoDTO(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     ano_exercicio: int
+    bloco_universal: BlocoUniversalResumoDTO
+    indicadores: List[IndicadorUniversalDetalheDTO]
+
+    # Indicadores oficiais SES/MG (Braúnas/MG)
+    indicador_11: IndicadorUniversalDetalheDTO
+    indicador_12: IndicadorUniversalDetalheDTO
+    indicador_13: IndicadorUniversalDetalheDTO
+    indicador_14: IndicadorUniversalDetalheDTO
+    indicador_15: IndicadorUniversalDetalheDTO
+
+    # Retrocompatibilidade com testes e contratos legados
     indicador_11_vapt: IndicadorItemDTO
     indicador_12_risco_3: IndicadorItemDTO
     indicador_13_risco_2: IndicadorItemDTO
@@ -51,19 +103,6 @@ class RelatorioIndicador11DetalhadoDTO(BaseModel):
     percentual_atingido: float
     status_cumprimento: str
     historico_exercicios: List[Dict[str, Any]]
-
-
-class ItemEstabelecimentoCoberturaDTO(BaseModel):
-    id: uuid.UUID
-    cnpj_cpf: str
-    razao_social: str
-    nome_fantasia: Optional[str] = None
-    grau_risco: str
-    fiscalizado_no_exercicio: bool
-    data_ultima_inspecao: Optional[str] = None
-    resultado_ultima_inspecao: Optional[str] = None
-    situacao_alvara: str
-    numero_alvara: Optional[str] = None
 
 
 class RelatorioRiscoCoberturaDTO(BaseModel):

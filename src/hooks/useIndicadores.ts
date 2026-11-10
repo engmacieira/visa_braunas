@@ -9,6 +9,7 @@ import {
   AlertasVencimentoResponse,
   DashboardIndicadoresResponse,
   EstatisticasRiscoDTO,
+  IndicadorUniversalDetalheItem,
   MetasExercicioDTO,
   RelatorioIndicador11DetalhadoResponse,
   RelatorioSusDTO,
@@ -24,6 +25,8 @@ export const INDICADORES_QUERY_KEYS = {
   vapt11: (ano?: number) => ["indicadores", "vapt-11", ano ?? "corrente"] as const,
   coberturaRisco: (grau: string, ano?: number, apenasPendentes?: boolean) =>
     ["indicadores", "cobertura", grau, ano ?? "corrente", apenasPendentes ? "pendentes" : "todos"] as const,
+  detalhes: (indicadorNumero: number, ano?: number) =>
+    ["indicadores", "detalhes", indicadorNumero, ano ?? "corrente"] as const,
 };
 
 /**
@@ -94,5 +97,17 @@ export function useCoberturaRisco(
     queryFn: () => indicadoresService.obterCoberturaPorRisco(grauRisco, ano, apenasPendentes),
     staleTime: CINCO_MINUTOS,
     enabled: Boolean(grauRisco),
+  });
+}
+
+/**
+ * Consulta o detalhamento com a lista de estabelecimentos de um Indicador Universal (11 a 15)
+ */
+export function useDetalhesIndicador(indicadorNumero: number | null, ano?: number) {
+  return useQuery<IndicadorUniversalDetalheItem>({
+    queryKey: indicadorNumero ? INDICADORES_QUERY_KEYS.detalhes(indicadorNumero, ano) : ["indicadores", "detalhes", "none"],
+    queryFn: () => indicadoresService.obterDetalhesIndicador(indicadorNumero!, ano),
+    staleTime: CINCO_MINUTOS,
+    enabled: Boolean(indicadorNumero && indicadorNumero >= 11 && indicadorNumero <= 15),
   });
 }

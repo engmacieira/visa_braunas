@@ -18,8 +18,44 @@ export interface IndicadorMetaItem {
   progresso: ProgressoMetaItem;
 }
 
+export interface IndicadorUniversalDetalheItem {
+  codigo: "IND-11" | "IND-12" | "IND-13" | "IND-14" | "IND-15" | string;
+  numero: number;
+  titulo: string;
+  descricao: string;
+  unidade: string;
+  peso_financeiro_percentual: number;
+  numerador: number;
+  denominador: number;
+  meta_pactuada: number;
+  meta_percentual: number;
+  percentual_alcancado: number;
+  atingiu_meta: boolean;
+  status: "Atingida" | "Em Andamento" | "Crítica" | string;
+  pontuacao_alcancada: number;
+  grau_risco_rotulo?: string | null;
+  estabelecimentos?: ItemEstabelecimentoCobertura[];
+  progresso: ProgressoMetaItem;
+}
+
+export interface BlocoUniversalResumo {
+  peso_total_percentual: number;
+  pontuacao_total_alcancada: number;
+  percentual_atingido_bloco: number;
+  status_bloco: "Excelente" | "Regular" | "Crítico" | string;
+  total_indicadores_atingidos: number;
+}
+
 export interface DashboardIndicadoresResponse {
   ano_exercicio: number;
+  bloco_universal?: BlocoUniversalResumo;
+  indicadores?: IndicadorUniversalDetalheItem[];
+  indicador_11?: IndicadorUniversalDetalheItem;
+  indicador_12?: IndicadorUniversalDetalheItem;
+  indicador_13?: IndicadorUniversalDetalheItem;
+  indicador_14?: IndicadorUniversalDetalheItem;
+  indicador_15?: IndicadorUniversalDetalheItem;
+  // Retrocompatibilidade com contratos legados
   indicador_11_vapt: IndicadorMetaItem;
   indicador_12_risco_3: IndicadorMetaItem;
   indicador_13_risco_2: IndicadorMetaItem;

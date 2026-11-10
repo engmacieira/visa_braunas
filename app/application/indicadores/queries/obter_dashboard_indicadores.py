@@ -5,8 +5,10 @@ from datetime import datetime
 from decimal import Decimal
 
 from app.application.indicadores.dtos import (
+    BlocoUniversalResumoDTO,
     DashboardMetasConsolidadoDTO,
     IndicadorItemDTO,
+    IndicadorUniversalDetalheDTO,
     ProgressoMetaDTO,
 )
 from app.domain.indicadores.repositories import IIndicadoresReadRepository
@@ -20,19 +22,31 @@ class ObterDashboardIndicadoresQuery:
     async def execute(self, ano_exercicio: int | None = None) -> DashboardMetasConsolidadoDTO:
         ano = ano_exercicio or datetime.now().year
 
-        # 1. Metas pactuadas para o exercício
+        # 1. Apuração oficial dos 5 Indicadores Universais do SES/MG para Braúnas/MG
+        dados_oficiais = await self.read_repo.obter_resumo_indicadores_universais(ano)
+        bloco_resumo = BlocoUniversalResumoDTO(**dados_oficiais["bloco_universal"])
+
+        ind_11_dto = IndicadorUniversalDetalheDTO(**dados_oficiais["indicador_11"])
+        ind_12_dto = IndicadorUniversalDetalheDTO(**dados_oficiais["indicador_12"])
+        ind_13_dto = IndicadorUniversalDetalheDTO(**dados_oficiais["indicador_13"])
+        ind_14_dto = IndicadorUniversalDetalheDTO(**dados_oficiais["indicador_14"])
+        ind_15_dto = IndicadorUniversalDetalheDTO(**dados_oficiais["indicador_15"])
+
+        lista_indicadores = [ind_11_dto, ind_12_dto, ind_13_dto, ind_14_dto, ind_15_dto]
+
+        # 2. Metas pactuadas para o exercício (para retrocompatibilidade legada)
         metas = await self.read_repo.obter_metas_exercicio(ano)
-        meta_vapt = metas.get("meta_inspecoes_vapt", 0) if metas else 0
+        meta_vapt = metas.get("meta_inspecoes_vapt", 2) if metas else 2
         meta_risco_1 = metas.get("meta_cobertura_risco_1", Decimal("100.00")) if metas else Decimal("100.00")
         meta_risco_2 = metas.get("meta_cobertura_risco_2", Decimal("100.00")) if metas else Decimal("100.00")
         meta_risco_3 = metas.get("meta_cobertura_risco_3", Decimal("100.00")) if metas else Decimal("100.00")
 
-        # 2. Dados VAPT (Indicador 11)
+        # Dados VAPT legados
         dados_vapt = await self.read_repo.obter_resumo_indicador_11_vapt(ano)
         vapt_realizado = dados_vapt.get("inspecoes_concluidas", 0)
         progresso_vapt = ProgressoMeta.calcular(meta=meta_vapt, realizado=vapt_realizado)
 
-        # 3. Cobertura por Grau de Risco (Indicadores 12 a 14)
+        # Cobertura por Grau de Risco legada
         dados_cobertura = await self.read_repo.obter_cobertura_risco_consolidada(ano)
         risco_3_dados = dados_cobertura.get("risco_3", {})
         risco_2_dados = dados_cobertura.get("risco_2", {})
@@ -51,7 +65,6 @@ class ObterDashboardIndicadoresQuery:
             realizado=risco_1_dados.get("percentual_realizado", 0.0),
         )
 
-        # 4. Indicador 15: Índice Sintético Geral Consolidado (Média ponderada do cumprimento das 4 metas pactuadas)
         pct_vapt = min(progresso_vapt.percentual_atingido, Decimal("100.00"))
         pct_r3 = min(progresso_risco_3.percentual_atingido, Decimal("100.00"))
         pct_r2 = min(progresso_risco_2.percentual_atingido, Decimal("100.00"))
@@ -59,12 +72,18 @@ class ObterDashboardIndicadoresQuery:
         media_sintetica = (pct_vapt + pct_r3 + pct_r2 + pct_r1) / Decimal("4.00")
         progresso_sintetico = ProgressoMeta.calcular(meta=100.00, realizado=media_sintetica)
 
-        # 5. Painel consolidado
-        painel_geral = await self.read_repo.obter_painel_alertas_vencimento(limite_dias=30)
-        distribuicao = dados_cobertura.get("distribuicao_estabelecimentos", {})
+        distribuicao = dados_oficiais.get("distribuicao_estabelecimentos_por_risco", {})
 
         return DashboardMetasConsolidadoDTO(
             ano_exercicio=ano,
+            bloco_universal=bloco_resumo,
+            indicadores=lista_indicadores,
+            indicador_11=ind_11_dto,
+            indicador_12=ind_12_dto,
+            indicador_13=ind_13_dto,
+            indicador_14=ind_14_dto,
+            indicador_15=ind_15_dto,
+            # Campos retrocompatíveis legados
             indicador_11_vapt=IndicadorItemDTO(
                 codigo="IND-11",
                 titulo="Indicador 11: Ações VAPT em Saúde do Trabalhador",
@@ -125,9 +144,9 @@ class ObterDashboardIndicadoresQuery:
                     status=progresso_sintetico.status.value,
                 ),
             ),
-            total_estabelecimentos_cadastrados=dados_cobertura.get("total_estabelecimentos_ativos", 0),
+            total_estabelecimentos_cadastrados=dados_oficiais.get("total_estabelecimentos_cadastrados", 0),
             distribuicao_estabelecimentos_por_risco=distribuicao,
-            total_inspecoes_exercicio=dados_cobertura.get("total_inspecoes_exercicio", 0),
-            total_alvaras_ativos=dados_cobertura.get("total_alvaras_ativos", 0),
+            total_inspecoes_exercicio=dados_oficiais.get("total_inspecoes_exercicio", 0),
+            total_alvaras_ativos=dados_oficiais.get("total_alvaras_ativos", 0),
             atualizado_em=datetime.now(),
         )

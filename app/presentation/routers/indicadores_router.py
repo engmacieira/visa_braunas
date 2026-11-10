@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.application.indicadores.dtos import (
     DashboardMetasConsolidadoDTO,
+    IndicadorUniversalDetalheDTO,
     PainelAlertasVencimentoDTO,
     RelatorioIndicador11DetalhadoDTO,
     RelatorioOficialExercicioDTO,
@@ -83,6 +84,36 @@ async def obter_relatorio_indicador_11(
         status_cumprimento=status_meta,
         historico_exercicios=dados.get("historico", []),
     )
+
+
+@router.get(
+    "/detalhes/{indicador_numero}",
+    response_model=IndicadorUniversalDetalheDTO,
+    summary="Detalhamento do Indicador Universal (11 a 15) com Lista de Estabelecimentos",
+)
+async def obter_detalhes_indicador(
+    indicador_numero: int,
+    ano: Optional[int] = Query(None, description="Ano civil de exercício"),
+    repo: IndicadoresReadRepository = Depends(get_indicadores_read_repo),
+    _: Usuario = Depends(get_current_active_user),
+):
+    if indicador_numero not in [11, 12, 13, 14, 15]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Indicador inválido: {indicador_numero}. Valores oficiais válidos: 11, 12, 13, 14, 15.",
+        )
+    ano_alvo = ano or 2026
+    dados = await repo.obter_resumo_indicadores_universais(ano_alvo)
+    ind_key = f"indicador_{indicador_numero}"
+    ind_data = dados.get(ind_key)
+    if not ind_data:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Indicador {indicador_numero} não encontrado para o exercício {ano_alvo}.",
+        )
+    estabelecimentos = await repo.listar_estabelecimentos_por_indicador(indicador_numero, ano_alvo)
+    ind_data["estabelecimentos"] = estabelecimentos
+    return IndicadorUniversalDetalheDTO(**ind_data)
 
 
 @router.get(

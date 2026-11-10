@@ -18,6 +18,7 @@ import {
   EmitirAlvaraSanitarioInputDTO,
   EstabelecimentoOutputDTO,
   FilaTrabalhoDenunciaOutputDTO,
+  IndicadorUniversalDetalheDTO,
   InspecaoOutputDTO,
   LoginInputDTO,
   PaginatedAlvarasOutputDTO,
@@ -222,5 +223,9 @@ export const vigiminasApi = {
 
   async gerarRelatorioOficial(ano?: number): Promise<RelatorioOficialExercicioDTO> {
     return apiClient.get<RelatorioOficialExercicioDTO>("/indicadores/relatorio-oficial", { ano });
+  },
+
+  async obterDetalhesIndicador(indicadorNumero: number, ano?: number): Promise<IndicadorUniversalDetalheDTO> {
+    return apiClient.get<IndicadorUniversalDetalheDTO>(`/indicadores/detalhes/${indicadorNumero}`, { ano });
   },
 };
