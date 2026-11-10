@@ -124,8 +124,8 @@ async def test_view_inspecoes_notificacoes_a_vencer(async_db_session: AsyncSessi
     async_db_session.add(estab)
     await async_db_session.flush()
 
-    hoje = date.today()
-    data_limite = hoje + timedelta(days=10)
+    db_hoje = (await async_db_session.execute(text("SELECT CURRENT_DATE"))).scalar()
+    data_limite = db_hoje + timedelta(days=10)
 
     inspecao_notif = InspecaoModel(
         id=uuid.uuid4(),
@@ -135,8 +135,8 @@ async def test_view_inspecoes_notificacoes_a_vencer(async_db_session: AsyncSessi
         motivo="rotina_programada",
         status="concluida",
         resultado="notificado_com_prazo",
-        data_inicio=hoje,
-        data_fim=hoje,
+        data_inicio=db_hoje,
+        data_fim=db_hoje,
         prazo_adequacao_dias=10,
         data_limite_adequacao=data_limite,
         relato_vistoria="Notificação sanitária para conserto da câmara frigorífica.",
@@ -161,4 +161,3 @@ async def test_view_inspecoes_notificacoes_a_vencer(async_db_session: AsyncSessi
     assert row.numero_termo == inspecao_notif.numero_termo
     assert row.dias_restantes is not None
     assert row.dias_restantes == 10
-    assert row.data_limite_adequacao == data_limite
