@@ -88,3 +88,27 @@ jobs:
       - name: Run Pytest with Coverage Gate (>= 80%)
         run: |
           pytest --cov=app/domain --cov=app/infrastructure/models --cov=app/infrastructure/base_model.py --cov=app/infrastructure/seeds.py --cov-report=term-missing --cov-fail-under=80
+
+  frontend:
+    name: Frontend Tests & Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Frontend Tests
+        run: npm run test
+
+      - name: Run Frontend Build
+        run: npm run build
+
