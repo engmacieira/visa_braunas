@@ -2,7 +2,8 @@ from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from typing import Any, AsyncIterator, Dict
 
-from fastapi import FastAPI, status
+from fastapi import FastAPI, status, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
@@ -66,7 +67,6 @@ app.add_middleware(LatencyMonitoringMiddleware)
 # Middleware de Cabeçalhos Defensivos e HTTPS/HSTS
 app.add_middleware(SecurityHeadersMiddleware)
 
-# Configuração do Middleware de CORS
 # Configuração do Middleware de CORS
 cors_origins = [str(origin) for origin in settings.BACKEND_CORS_ORIGINS] if settings.BACKEND_CORS_ORIGINS else ["http://localhost:3000", "http://localhost:5173"]
 app.add_middleware(
@@ -142,3 +142,21 @@ async def health_check() -> Dict[str, Any]:
         "database": db_status,
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    origin = request.headers.get("origin", "http://localhost:3000")
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={
+            "detail": "Erro interno do servidor",
+            "error_type": exc.__class__.__name__,
+            "message": str(exc),
+        },
+        headers={
+            "Access-Control-Allow-Origin": origin,
+            "Access-Control-Allow-Credentials": "true",
+            "Access-Control-Allow-Methods": "*",
+            "Access-Control-Allow-Headers": "*",
+        },
+    )
