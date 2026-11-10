@@ -363,7 +363,7 @@ class IndicadoresReadRepository(IIndicadoresReadRepository):
         stmt_vapt = text("""
             SELECT COUNT(DISTINCT i.id) AS total_concluidas
             FROM inspecoes i
-            WHERE (i.eh_trabalhador_vapt = TRUE OR i.motivo = 'vapt_trabalhador')
+            WHERE i.motivo = 'vapt_trabalhador'
               AND i.status = 'concluida'
               AND EXTRACT(YEAR FROM i.data_inicio) = :ano
               AND i.is_deleted = FALSE
@@ -609,7 +609,7 @@ class IndicadoresReadRepository(IIndicadoresReadRepository):
                 FROM estabelecimentos e
                 JOIN inspecoes i ON e.id = i.estabelecimento_id
                 LEFT JOIN vw_estabelecimentos_risco_consolidado v ON e.id = v.estabelecimento_id
-                WHERE (i.eh_trabalhador_vapt = TRUE OR i.motivo = 'vapt_trabalhador')
+                WHERE i.motivo = 'vapt_trabalhador'
                   AND i.status = 'concluida'
                   AND EXTRACT(YEAR FROM i.data_inicio) = :ano
                   AND i.is_deleted = FALSE
