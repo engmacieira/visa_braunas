@@ -35,6 +35,8 @@ class IEstabelecimentoRepository(ABC):
         risco: Optional[NivelRiscoSanitario] = None,
         busca: Optional[str] = None,
         only_active: bool = True,
+        order_by: Optional[str] = None,
+        order_direction: Optional[str] = "asc",
     ) -> List[Estabelecimento]:
         pass
 

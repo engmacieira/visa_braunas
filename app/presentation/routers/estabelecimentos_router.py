@@ -132,8 +132,10 @@ async def list_estabelecimentos(
     limit: int = Query(50, ge=1, le=100),
     situacao: Optional[SituacaoCadastral] = Query(None, description="Filtrar por situação cadastral"),
     risco: Optional[NivelRiscoSanitario] = Query(None, description="Filtrar por nível de risco sanitário"),
-    busca: Optional[str] = Query(None, description="Busca por razão social, nome fantasia ou CNPJ/CPF"),
+    busca: Optional[str] = Query(None, description="Busca por razão social, nome fantasia, CNPJ/CPF ou inscrição municipal"),
     only_active: bool = Query(True, description="Exibir apenas registros ativos"),
+    order_by: Optional[str] = Query(None, description="Campo para ordenação (ex: 'inscricao_municipal', 'razao_social', 'cnpj_cpf')"),
+    order_direction: Optional[str] = Query("asc", regex="^(asc|desc|ASC|DESC)$", description="Direção da ordenação: 'asc' ou 'desc'"),
     estabelecimento_repo: IEstabelecimentoRepository = Depends(get_estabelecimento_repository),
     _: Usuario = Depends(require_operacional),
 ) -> EstabelecimentoListResponseDTO:
@@ -144,6 +146,8 @@ async def list_estabelecimentos(
         risco=risco,
         busca=busca,
         only_active=only_active,
+        order_by=order_by,
+        order_direction=order_direction,
     )
     total = await estabelecimento_repo.count_estabelecimentos(
         situacao=situacao,

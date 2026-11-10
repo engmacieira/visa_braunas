@@ -209,6 +209,8 @@ class EstabelecimentoRepository(IEstabelecimentoRepository):
         risco: Optional[NivelRiscoSanitario] = None,
         busca: Optional[str] = None,
         only_active: bool = True,
+        order_by: Optional[str] = None,
+        order_direction: Optional[str] = "asc",
     ) -> List[Estabelecimento]:
         query = self._base_query().where(EstabelecimentoModel.is_deleted.is_(False))
 
@@ -224,12 +226,44 @@ class EstabelecimentoRepository(IEstabelecimentoRepository):
             conditions = [
                 EstabelecimentoModel.razao_social.ilike(termo),
                 EstabelecimentoModel.nome_fantasia.ilike(termo),
+                EstabelecimentoModel.inscricao_municipal.ilike(termo),
             ]
             if clean_digits:
                 conditions.append(EstabelecimentoModel.cnpj_cpf.ilike(f"%{clean_digits}%"))
             query = query.where(or_(*conditions))
 
-        query = query.order_by(EstabelecimentoModel.razao_social.asc()).offset(skip).limit(limit)
+        # Aplicação dinâmica de ordenação por coluna
+        direction = (order_direction or "asc").lower()
+        if order_by == "inscricao_municipal":
+            col = EstabelecimentoModel.inscricao_municipal
+            order_clause = col.desc().nulls_last() if direction == "desc" else col.asc().nulls_last()
+            query = query.order_by(order_clause, EstabelecimentoModel.razao_social.asc())
+        elif order_by == "cnpj_cpf":
+            col = EstabelecimentoModel.cnpj_cpf
+            order_clause = col.desc() if direction == "desc" else col.asc()
+            query = query.order_by(order_clause)
+        elif order_by == "nivel_risco":
+            col = EstabelecimentoModel.nivel_risco
+            order_clause = col.desc() if direction == "desc" else col.asc()
+            query = query.order_by(order_clause, EstabelecimentoModel.razao_social.asc())
+        elif order_by == "situacao_alvara":
+            col = EstabelecimentoModel.situacao_alvara
+            order_clause = col.desc() if direction == "desc" else col.asc()
+            query = query.order_by(order_clause, EstabelecimentoModel.razao_social.asc())
+        elif order_by == "situacao_estabelecimento":
+            col = EstabelecimentoModel.situacao_estabelecimento
+            order_clause = col.desc() if direction == "desc" else col.asc()
+            query = query.order_by(order_clause, EstabelecimentoModel.razao_social.asc())
+        elif order_by == "criado_em":
+            col = EstabelecimentoModel.criado_em
+            order_clause = col.desc() if direction == "desc" else col.asc()
+            query = query.order_by(order_clause)
+        else:
+            col = EstabelecimentoModel.razao_social
+            order_clause = col.desc() if direction == "desc" else col.asc()
+            query = query.order_by(order_clause)
+
+        query = query.offset(skip).limit(limit)
         result = await self.session.execute(query)
         models = result.unique().scalars().all()
         return [self._to_entity(m) for m in models]
@@ -254,6 +288,7 @@ class EstabelecimentoRepository(IEstabelecimentoRepository):
             conditions = [
                 EstabelecimentoModel.razao_social.ilike(termo),
                 EstabelecimentoModel.nome_fantasia.ilike(termo),
+                EstabelecimentoModel.inscricao_municipal.ilike(termo),
             ]
             if clean_digits:
                 conditions.append(EstabelecimentoModel.cnpj_cpf.ilike(f"%{clean_digits}%"))

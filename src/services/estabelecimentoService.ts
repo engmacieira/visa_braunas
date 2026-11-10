@@ -37,6 +37,12 @@ export const estabelecimentoService = {
     if (filters.situacao) {
       params.situacao = filters.situacao;
     }
+    if (filters.order_by) {
+      params.order_by = filters.order_by;
+    }
+    if (filters.order_direction) {
+      params.order_direction = filters.order_direction;
+    }
 
     const response = await apiClient.get<EstabelecimentoListResponse>(
       "/estabelecimentos",

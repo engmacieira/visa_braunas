@@ -131,6 +131,8 @@ export interface EstabelecimentoFilters {
   skip?: number;
   limit?: number;
   only_active?: boolean;
+  order_by?: string;
+  order_direction?: "asc" | "desc";
 }
 
 export interface EstabelecimentoFormValues {

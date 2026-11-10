@@ -7,6 +7,9 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
   Building2,
   ChevronLeft,
   ChevronRight,
@@ -37,6 +40,8 @@ export const EstabelecimentosListPage: React.FC = () => {
   const [filtroRisco, setFiltroRisco] = useState<NivelRisco | "">("");
   const [filtroSituacao, setFiltroSituacao] = useState<SituacaoCadastral | "">("");
   const [paginaAtual, setPaginaAtual] = useState(1);
+  const [campoOrdenacao, setCampoOrdenacao] = useState<string>("razao_social");
+  const [direcaoOrdenacao, setDirecaoOrdenacao] = useState<"asc" | "desc">("asc");
 
   // Debounce de 350ms na busca textual
   useEffect(() => {
@@ -47,10 +52,22 @@ export const EstabelecimentosListPage: React.FC = () => {
     return () => clearTimeout(timer);
   }, [termoBusca]);
 
+  const handleAlternarOrdenacao = (campo: string) => {
+    if (campoOrdenacao === campo) {
+      setDirecaoOrdenacao((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setCampoOrdenacao(campo);
+      setDirecaoOrdenacao("asc");
+    }
+    setPaginaAtual(1);
+  };
+
   const filtros: EstabelecimentoFilters = {
     busca: debouncedBusca,
     risco: filtroRisco,
     situacao: filtroSituacao,
+    order_by: campoOrdenacao,
+    order_direction: direcaoOrdenacao,
     skip: (paginaAtual - 1) * ITENS_POR_PAGINA,
     limit: ITENS_POR_PAGINA,
   };
@@ -66,11 +83,49 @@ export const EstabelecimentosListPage: React.FC = () => {
     setDebouncedBusca("");
     setFiltroRisco("");
     setFiltroSituacao("");
+    setCampoOrdenacao("razao_social");
+    setDirecaoOrdenacao("asc");
     setPaginaAtual(1);
   };
 
   const temFiltrosAtivos =
-    Boolean(termoBusca) || Boolean(filtroRisco) || Boolean(filtroSituacao);
+    Boolean(termoBusca) ||
+    Boolean(filtroRisco) ||
+    Boolean(filtroSituacao) ||
+    campoOrdenacao !== "razao_social" ||
+    direcaoOrdenacao !== "asc";
+
+  const renderSortableHeader = (campo: string, titulo: string, className = "py-3 px-4") => {
+    const isAtivo = campoOrdenacao === campo;
+    return (
+      <th className={className} scope="col">
+        <button
+          type="button"
+          onClick={() => handleAlternarOrdenacao(campo)}
+          className={`inline-flex items-center gap-1.5 font-semibold uppercase tracking-wider text-[11px] rounded transition-colors group focus:outline-none focus:ring-1 focus:ring-teal-500 py-0.5 ${
+            isAtivo
+              ? "text-teal-600 dark:text-teal-400 font-bold"
+              : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
+          }`}
+          title={`Ordenar por ${titulo} (${isAtivo && direcaoOrdenacao === "asc" ? "decrescente" : "crescente"})`}
+          aria-sort={isAtivo ? (direcaoOrdenacao === "asc" ? "ascending" : "descending") : "none"}
+        >
+          <span>{titulo}</span>
+          <span className="p-0.5 rounded">
+            {isAtivo ? (
+              direcaoOrdenacao === "asc" ? (
+                <ArrowUp className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
+              ) : (
+                <ArrowDown className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
+              )
+            ) : (
+              <ArrowUpDown className="w-3.5 h-3.5 text-slate-400 opacity-60 group-hover:opacity-100 transition-opacity" />
+            )}
+          </span>
+        </button>
+      </th>
+    );
+  };
 
   return (
     <div className="space-y-5">
@@ -120,7 +175,7 @@ export const EstabelecimentosListPage: React.FC = () => {
               type="text"
               value={termoBusca}
               onChange={(e) => setTermoBusca(e.target.value)}
-              placeholder="Buscar por CNPJ/CPF, Razão Social ou Nome Fantasia..."
+              placeholder="Buscar por CNPJ/CPF, Inscrição Municipal, Razão Social ou Nome Fantasia..."
               className="w-full pl-9 pr-8 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500"
             />
             {termoBusca && (
@@ -210,8 +265,9 @@ export const EstabelecimentosListPage: React.FC = () => {
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
                 <tr>
-                  <th className="py-3 px-4">CNPJ / CPF</th>
-                  <th className="py-3 px-4">Razão Social / Nome Fantasia</th>
+                  {renderSortableHeader("cnpj_cpf", "CNPJ / CPF")}
+                  {renderSortableHeader("inscricao_municipal", "Inscrição Municipal")}
+                  {renderSortableHeader("razao_social", "Razão Social / Nome Fantasia")}
                   <th className="py-3 px-4">Grau de Risco</th>
                   <th className="py-3 px-4">Situação do Alvará</th>
                   <th className="py-3 px-4">Situação Cadastral</th>
@@ -226,6 +282,16 @@ export const EstabelecimentosListPage: React.FC = () => {
                   >
                     <td className="py-3 px-4 font-mono font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap">
                       {estab.cnpj_cpf}
+                    </td>
+
+                    <td className="py-3 px-4 font-mono font-medium text-slate-700 dark:text-slate-300 tabular-nums whitespace-nowrap">
+                      {estab.inscricao_municipal ? (
+                        estab.inscricao_municipal
+                      ) : (
+                        <span className="text-slate-400 font-sans italic text-[11px]" title="Inscrição Municipal não informada">
+                          N/I
+                        </span>
+                      )}
                     </td>
 
                     <td className="py-3 px-4 max-w-xs">
